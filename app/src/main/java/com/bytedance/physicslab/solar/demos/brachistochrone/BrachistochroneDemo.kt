@@ -34,6 +34,10 @@ import com.bytedance.physicslab.solar.core.brachistochrone.Cycloid
 import com.bytedance.physicslab.solar.core.brachistochrone.Descent
 import com.bytedance.physicslab.solar.core.brachistochrone.Lanes
 import com.bytedance.physicslab.solar.core.brachistochrone.Track
+import com.bytedance.physicslab.solar.lab.Bi
+import com.bytedance.physicslab.solar.lab.Challenge
+import com.bytedance.physicslab.solar.lab.Lesson
+import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
@@ -481,6 +485,55 @@ object BrachistochroneDemo : SpecDemo() {
     )
 
     override fun isTarget(name: String) = name.startsWith("Bead")
+
+    // ---------------------------------------------------------------- guided track (导学)
+
+    private var dropAtStep = 0.0
+    private fun raceOver() = mode == 0 && t >= exact.max()
+    private fun bowlMeets(): Int { val T = bowlT; return if (mode != 1 || t < T) 0 else 1 + floor((t - T) / (2 * T)).toInt() }
+
+    override val lesson: Lesson by lazy {
+        Lesson(
+            listOf(
+                LessonStep(
+                    say = Bi("四颗珠子从同一高度出发，滑到同一个终点。你猜哪一条轨道最快？", "Four beads start at the same height and slide to the same finish. Which track is fastest?"),
+                    options = listOf(Bi("直线（最短）", "Straight (shortest)"), Bi("圆弧", "Arc"), Bi("陡降", "Cliff"), Bi("摆线", "Cycloid")),
+                    answer = 3,
+                ),
+                LessonStep(
+                    say = Bi("捏住你猜的那颗珠子（或点下方「我猜…」），比赛重新开始。", "Pinch the bead you picked (or tap “Guess” below) — the race restarts."),
+                    target = "Bead0",
+                    done = { mode == 0 && pick >= 0 },
+                    autoplay = { selectMode(0); onTap("Bead0") },
+                ),
+                LessonStep(
+                    say = Bi("盯住终点：谁第一个到？", "Watch the finish line: who arrives first?"),
+                    done = { raceOver() },
+                    reveal = true,
+                    insight = Bi("摆线最快：它先陡降，早早把高度换成速度，虽然路更长，却一路都更快。", "The cycloid wins: it drops steeply first, turning height into speed early — a longer path, but faster all the way."),
+                ),
+                LessonStep(
+                    say = Bi("拖动「落差 h」改变终点高度，再看一场：摆线是否还是最快？", "Change the drop h with its slider and watch again: is the cycloid still fastest?"),
+                    onEnter = { dropAtStep = drop },
+                    done = { kotlin.math.abs(drop - dropAtStep) > 0.02 && raceOver() },
+                    autoplay = { applyDrop(if (drop < 0.4) 0.45 else 0.25) },
+                    insight = Bi("无论落差多少，摆线都最快 —— 这就是约翰·伯努利 1696 年那道挑战题的答案。", "Whatever the drop, the cycloid wins — the answer to Johann Bernoulli's 1696 challenge."),
+                ),
+                LessonStep(
+                    say = Bi("切到「等时」模式：四颗珠子从不同高度同时松手。", "Switch to “Tautochrone”: four beads released from different heights."),
+                    done = { bowlMeets() >= 1 },
+                    autoplay = { selectMode(1) },
+                    insight = Bi("它们同时到达谷底！摆线还是等时曲线（惠更斯 1659）：从哪里松手，用时都一样。", "They reach the bottom together! The cycloid is also the tautochrone (Huygens 1659): same time from any height."),
+                ),
+            ),
+            challenge = Challenge(
+                say = Bi("捏一颗珠子换个起点高度，看它们还能否连续相遇 3 次。", "Pinch a bead to change its start height — do they still meet 3 times in a row?"),
+                progress = { tr("相遇 %d / 3 次", "Met %d / 3 times").format(bowlMeets().coerceAtMost(3)) },
+                done = { bowlMeets() >= 3 },
+                autoplay = { if (mode != 1) selectMode(1); onTap("Bead2") },
+            ),
+        )
+    }
 
     override fun tapMessage(name: String): String? {
         val i = name.removePrefix("Bead").toIntOrNull() ?: return null

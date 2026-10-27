@@ -46,6 +46,8 @@ import kotlinx.coroutines.launch
 private val MENU_POS = Vector3(0f, 0.52f, 0.95f)
 private val CATALOG_POS = Vector3(0f, 0.02f, 0.98f)
 private val PANEL_POS = Vector3(0f, -0.36f, 0.92f)
+/** Guided-track card: upper left, beside the top bar (x -0.90 … -0.48 for its 520 dp). */
+private val LESSON_POS = Vector3(-0.69f, 0.43f, 0.95f)
 /** A pinch released within this long is a tap (the OS verdict's timeout is unknown and was too strict). */
 private const val TAP_MAX_MS = 1500L
 
@@ -133,6 +135,12 @@ fun LabVolume(firstDemo: String) {
                 content.addEntity(this)
                 LabHost.controlsEntity = this
             }
+            attachments.entity(id = "lesson")?.apply {
+                components[TransformComponent::class.java]?.position = LESSON_POS
+                content.addEntity(this)
+                LabHost.lessonEntity = this
+                enabled = false
+            }
             attachments.entity(id = "toast")?.apply {
                 content.addEntity(this)
                 LabHost.toastEntity = this
@@ -154,6 +162,7 @@ fun LabVolume(firstDemo: String) {
             }
             for (i in 0 until LabHost.LABEL_SLOTS) AttachmentPanel(id = "label$i") { LabelChip(LabHost.labelText[i]) }
             AttachmentPanel(id = "toast") { ToastChip(LabHost.toastText) }
+            AttachmentPanel(id = "lesson") { LessonCard() }
         },
     )
 }

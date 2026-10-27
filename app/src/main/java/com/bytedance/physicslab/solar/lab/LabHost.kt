@@ -65,6 +65,9 @@ interface Demo {
     fun anchorOf(name: String): FloatArray? = null
     /** Flash the object's pinch halo (confirms the pinch registered). */
     fun flash(name: String) {}
+
+    /** The guided track (导学) for this demo, or null. Build it ONCE (`by lazy`): steps capture demo state. */
+    val lesson: Lesson? get() = null
 }
 
 object LabHost {
@@ -90,9 +93,11 @@ object LabHost {
         // hide the control panel through its ENTITY, never by emptying its content: an attachment
         // whose content went to zero size did not come back (other demos showed no panel at all)
         controlsEntity?.enabled = !open
+        lessonEntity?.enabled = !open && LessonRunner.phase != LessonRunner.Phase.NONE
         if (open) hideLabels()
     }
     var controlsEntity: Entity? = null
+    var lessonEntity: Entity? = null
 
     // ---- drag routing ----
     private var dragName: String? = null
@@ -157,6 +162,8 @@ object LabHost {
             current = next; currentRoot = root; checked = false; sinceBuild = 0f
             fpsN = 0; fpsT = 0f; fpsWorst = 0f; workWorst = 0f
             currentId = next.id
+            LessonRunner.start(next.lesson) { node -> current?.flash(node) }
+            lessonEntity?.enabled = !catalogOpen && LessonRunner.phase != LessonRunner.Phase.NONE
             Log.i(TAG, "demo ${next.id} up in ${"%.0f".format((System.nanoTime() - t0) / 1e6)} ms")
         } catch (e: Exception) {
             Log.e(TAG, "demo $id failed to build", e)
@@ -172,6 +179,7 @@ object LabHost {
         val d = current ?: return
         if (loading) return
         tickToast(dt)
+        LessonRunner.tick(dt)
         val t0 = System.nanoTime()
         d.tick(dt)
         val work = (System.nanoTime() - t0) / 1e6f

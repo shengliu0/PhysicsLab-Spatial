@@ -67,6 +67,16 @@ class UiPreviewTest {
                     if (com.bytedance.physicslab.solar.lab.ui.readoutOverflow > 0) wrapped += "$tag/${d.id}-$name (+${com.bytedance.physicslab.solar.lab.ui.readoutOverflow})"
                 }
             }
+            // the guided-track card at its first step (and at a PREDICT step, if any) for every demo with a lesson
+            for (d in DemoRegistry.all.filterIsInstance<SpecDemo>()) {
+                if (only.isNotEmpty() && d.id != only) continue
+                val l = d.lesson ?: continue
+                LabHost.previewAs(d); LessonRunner.start(l)
+                capture(act, File(out, "${tag}_lesson_${d.id}.png")) { com.bytedance.physicslab.solar.content.LessonCard() }; n++
+                val p = l.steps.indexOfFirst { it.isPredict }
+                if (p > 0) { while (LessonRunner.index < p) LessonRunner.skip()
+                    capture(act, File(out, "${tag}_lesson_${d.id}_predict.png")) { com.bytedance.physicslab.solar.content.LessonCard() }; n++ }
+            }
             if (only.isEmpty()) {
                 capture(act, File(out, "${tag}_topbar.png")) { LabTopBar { } }; n++
                 LabHost.showCatalog(true)

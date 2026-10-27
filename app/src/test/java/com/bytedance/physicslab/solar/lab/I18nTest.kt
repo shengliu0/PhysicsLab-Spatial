@@ -29,6 +29,10 @@ class I18nTest {
             if (cjk.containsMatchIn(d.readoutText)) bad += "${d.id}: CJK in EN readout: ${d.readoutText.lines().firstOrNull { cjk.containsMatchIn(it) }}"
             d.labels.filter { cjk.containsMatchIn(it.text) }.forEach { bad += "${d.id}: CJK in EN label '${it.text}'" }
             if (cjk.containsMatchIn(DemoRegistry.titleOf(d))) bad += "${d.id}: CJK in EN title"
+            d.lesson?.let { l ->
+                val texts = l.steps.flatMap { s -> listOfNotNull(s.say.en, s.insight?.en) + s.options.map { it.en } } + listOfNotNull(l.challenge?.say?.en)
+                texts.filter { cjk.containsMatchIn(it) }.forEach { bad += "${d.id}: CJK in EN lesson text '${it.take(30)}'" }
+            }
             Lang.set(false)
             d.update(1f / 60f)
             if (!cjk.containsMatchIn(d.readoutText)) bad += "${d.id}: ZH readout has no Chinese — switch did not switch back"
@@ -48,7 +52,7 @@ class I18nTest {
             if (f.name == "I18n.kt") continue
             f.readLines().forEachIndexed { i, line ->
                 val code = line.substringBefore("//").trim()
-                if (code.startsWith("*") || code.startsWith("/*") || line.trimStart().startsWith("//") || line.contains("i18n-ok") || line.contains("TapTarget(") || code.contains("Log.")) return@forEachIndexed
+                if (code.startsWith("*") || code.startsWith("/*") || line.trimStart().startsWith("//") || line.contains("i18n-ok") || line.contains("TapTarget(") || line.contains("Bi(") || code.contains("Log.")) return@forEachIndexed
                 for (m in lit.findAll(line.substringBefore(" //"))) {
                     if (!cjk.containsMatchIn(m.value)) continue
                     val before = line.substring(0, m.range.first).trimEnd()
