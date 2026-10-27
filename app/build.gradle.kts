@@ -75,5 +75,6 @@ configurations.all {
 // forward -Dreview.only=<id> to the forked unit-test JVM (LabReviewTest renders just that demo)
 tasks.withType<Test>().configureEach {
     systemProperty("review.only", System.getProperty("review.only") ?: "")
+    systemProperty("showcase", System.getProperty("showcase") ?: "")   // ShowcaseRenderTest (opt-in HD stills)
     maxHeapSize = "1536m"
 }

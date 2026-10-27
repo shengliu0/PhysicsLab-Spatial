@@ -77,7 +77,7 @@
              -->
             <meta-data
                 android:name="pico.spatial.windowcontainer.worldscaletype"
-                android:value="2" />
+                android:value="1" />
 
             <!-- Caption bar type of the WindowContainer
                  "0": CaptionBarType.Default, the caption bar is always visible (default)

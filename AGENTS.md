@@ -99,6 +99,9 @@ motions across the line of sight.
      scene: reset every cached "already applied" field and every filter in `buildSpec`).
 4. `python3 tools/make_thumbs.py` -> `res/drawable-nodpi/thumb_<id>.png` (the catalogue card picture,
    cropped from the review render), then `assembleDebug`.
+5. Store assets: `./gradlew :app:testDebugUnitTest --tests "*ShowcaseRenderTest*" -Dshowcase=true` (HD stills,
+   auto-framed), copy to `docs/screenshots/`, then `python3 tools/make_poster.py`. The icon (store + PICO
+   3-D layers + SDF relief maps) is `python3 tools/make_icons.py`.
 
 ## Menu (content/LabMenu.kt)
 

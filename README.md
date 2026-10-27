@@ -1,16 +1,24 @@
 # 物理实验室 Spatial · Physics Lab Spatial
 
+<img src="docs/store/icon_1024.png" width="128" align="right" alt="icon">
+
 11 个经典物理实验，做成可以**亲手操作**的空间实验台，运行在 PICO 头显（Swan）的 Shared Space 中。
 基于 PICO SpatialSDK（Kotlin + Compose）开发；中英双语界面。
 
 *11 famous physics experiments as hands-on spatial lab benches for PICO (Swan) Shared Space, built with
 PICO SpatialSDK (Kotlin + Compose). Chinese / English UI.*
 
-| | | | |
-|---|---|---|---|
-| ![](app/src/main/res/drawable-nodpi/thumb_solar.png) | ![](app/src/main/res/drawable-nodpi/thumb_pendulum.png) | ![](app/src/main/res/drawable-nodpi/thumb_brachistochrone.png) | ![](app/src/main/res/drawable-nodpi/thumb_buoyancy.png) |
-| ![](app/src/main/res/drawable-nodpi/thumb_young.png) | ![](app/src/main/res/drawable-nodpi/thumb_prism.png) | ![](app/src/main/res/drawable-nodpi/thumb_gas.png) | ![](app/src/main/res/drawable-nodpi/thumb_expansion.png) |
-| ![](app/src/main/res/drawable-nodpi/thumb_cyclotron.png) | ![](app/src/main/res/drawable-nodpi/thumb_faraday.png) | ![](app/src/main/res/drawable-nodpi/thumb_photoelectric.png) | |
+| | |
+|---|---|
+| ![太阳系](docs/screenshots/solar.jpg) | ![伽利略单摆](docs/screenshots/pendulum.jpg) |
+| ![最速降线](docs/screenshots/brachistochrone.jpg) | ![阿基米德浮力](docs/screenshots/buoyancy.jpg) |
+| ![杨氏双缝](docs/screenshots/young.jpg) | ![牛顿棱镜](docs/screenshots/prism.jpg) |
+| ![气体分子运动论](docs/screenshots/gas.jpg) | ![热胀冷缩](docs/screenshots/expansion.jpg) |
+| ![回旋加速器](docs/screenshots/cyclotron.jpg) | ![法拉第电磁感应](docs/screenshots/faraday.jpg) |
+| ![光电效应](docs/screenshots/photoelectric.jpg) | |
+
+*截图为 2560×1440 无头渲染（`ShowcaseRenderTest`），与头显内的场景同源。
+HD stills rendered headlessly from the same scene code that runs on the headset.*
 
 ## 实验 · Experiments
 
@@ -63,5 +71,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 无头评审 · Headless review：
 - `LabReviewTest`：用 CPU 渲染每个实验场景，输出到 `app/build/review/`。*Renders every scene on the CPU.*
 - `UiPreviewTest`：用 Robolectric 渲染真实的 Compose 面板（中英双语），并检查排版。*Renders the real Compose panels in both languages and checks the layout.*
+- `ShowcaseRenderTest`（`-Dshowcase=true`）：输出 2560×1440 高清截图到 `app/build/showcase/`。*HD stills.*
+- `python3 tools/make_icons.py` / `tools/make_poster.py`：生成图标（含 PICO 3D 图标的各层）与宣传海报，输出到 `docs/store/`。*Icon (incl. PICO 3-D icon layers) and store poster.*
 
 架构与开发约定见 [AGENTS.md](AGENTS.md)。*Architecture and conventions: see [AGENTS.md](AGENTS.md).*
