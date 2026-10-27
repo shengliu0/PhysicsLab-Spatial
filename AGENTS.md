@@ -89,7 +89,6 @@ motions across the line of sight.
   boxed per-vertex lists). Per frame animate with node pos/rot/scale/visible and `setMat`; particles and
   molecules are pooled nodes sharing one mesh; `meshEdited` per frame only for small meshes (< ~300
   vertices per frame in total); keep visible nodes < ~600. `SpecAdapter` budgets uploads at 3 ms/frame.
-- Chemistry demos (`Subject.CHEM`) show the macro phenomenon AND a micro molecular window side by side.
 - UI text through `tr(zh, en)`, Chinese default. Teach one clear idea; make the user DO something.
 - Solar-system physics changes must keep `SolarCoreParityTest` green.
 

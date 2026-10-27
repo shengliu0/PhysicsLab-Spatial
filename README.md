@@ -2,12 +2,11 @@
 
 <img src="docs/store/icon_1024.png" width="128" align="right" alt="icon">
 
-18 个物理与化学实验，做成可以**亲手操作**的空间实验台，运行在 PICO 头显（Swan）的 Shared Space 中。
-化学实验采用「宏观现象 + 微观分子」并排呈现。基于 PICO SpatialSDK（Kotlin + Compose）开发；中英双语界面。
+13 个经典物理实验，做成可以**亲手操作**的空间实验台，运行在 PICO 头显（Swan）的 Shared Space 中。
+基于 PICO SpatialSDK（Kotlin + Compose）开发；中英双语界面。姊妹作品：化学实验室 Spatial（Chemistry Lab Spatial）。
 
-*18 physics and chemistry experiments as hands-on spatial lab benches for PICO (Swan) Shared Space —
-chemistry shows the macroscopic phenomenon next to the molecules doing it. Built with PICO SpatialSDK
-(Kotlin + Compose). Chinese / English UI.*
+*13 famous physics experiments as hands-on spatial lab benches for PICO (Swan) Shared Space, built with
+PICO SpatialSDK (Kotlin + Compose). Chinese / English UI. Sister app: Chemistry Lab Spatial.*
 
 | | |
 |---|---|
@@ -17,9 +16,7 @@ chemistry shows the macroscopic phenomenon next to the molecules doing it. Built
 | ![气体分子运动论](docs/screenshots/gas.jpg) | ![热胀冷缩](docs/screenshots/expansion.jpg) |
 | ![回旋加速器](docs/screenshots/cyclotron.jpg) | ![法拉第电磁感应](docs/screenshots/faraday.jpg) |
 | ![光电效应](docs/screenshots/photoelectric.jpg) | ![α 粒子散射](docs/screenshots/rutherford.jpg) |
-| ![凸透镜成像](docs/screenshots/lens.jpg) | ![焰色反应](docs/screenshots/flame.jpg) |
-| ![分子构型](docs/screenshots/vsepr.jpg) | ![电解水](docs/screenshots/electrolysis.jpg) |
-| ![化学平衡](docs/screenshots/equilibrium.jpg) | ![大象牙膏](docs/screenshots/elephant.jpg) |
+| ![凸透镜成像](docs/screenshots/lens.jpg) | |
 
 *截图为 2560×1440 无头渲染（`ShowcaseRenderTest`），与头显内的场景同源。
 HD stills rendered headlessly from the same scene code that runs on the headset.*
@@ -41,12 +38,6 @@ HD stills rendered headlessly from the same scene code that runs on the headset.
 | 光电效应（Einstein 1905） | Photoelectric Effect | 换谱线、换金属、调电压 · Spectral line, metal, voltage |
 | α 粒子散射（Rutherford 1911） | Alpha Scattering · the Nucleus | 转动显微镜计数、瞄准原子核看双曲线轨迹、切换汤姆孙模型对比 · Swing the counter, aim at the nucleus, compare with Thomson's model |
 | 凸透镜成像（Kepler 1611） | Convex Lens Imaging | 拖动蜡烛和光屏，3D 光路实时会聚成像（实像 / 虚像）· Drag candle and screen; rays converge in 3-D |
-| **化学 · Chemistry** | | |
-| 焰色反应与原子光谱（Bunsen & Kirchhoff 1860） | Flame Tests & Atomic Spectra | 蘸盐看火焰颜色与谱线、钴玻璃、猜未知盐 · Dip salts, read the lines, cobalt glass, identify the unknown |
-| 分子构型 · VSEPR（Gillespie–Nyholm 1957） | Molecular Shapes · VSEPR | 添加成键 / 孤对电子，分子自己「长」成正确形状 · Add bonds or lone pairs; the shape self-assembles |
-| 电解水（Nicholson & Carlisle 1800） | Electrolysis of Water | 调电压、加电解质，H₂ : O₂ = 2 : 1，检验两种气体 · Voltage, electrolyte, the 2 : 1 gases, gas tests |
-| 化学平衡 · 勒夏特列（Le Chatelier 1884） | Chemical Equilibrium | 冷热水浴与压缩，NO₂⇌N₂O₄ 颜色与分子比例同步变化 · Heat, cool, compress; colour and molecule ratio change together |
-| 大象牙膏 · 催化分解 | Elephant Toothpaste · Catalysis | 换催化剂与浓度，泡沫喷发、碘离子循环、木条复燃 · Catalysts and concentrations; the eruption, the I⁻ cycle, the glowing splint |
 
 ## 交互 · Interaction
 
