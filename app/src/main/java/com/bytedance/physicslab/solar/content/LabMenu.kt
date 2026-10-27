@@ -64,8 +64,8 @@ import com.pico.spatial.ui.platform.Material
 private const val CARD_W = 225           // 18 cm = 4.1 deg at 2.5 m (was 300; still 2x the gaze error)
 private const val CARD_H = 188
 private const val THUMB_H = 134           // ~16:9.5 thumbnail; leaves 54 dp for title + credit
-private const val COLS = 5
-private const val PER_PAGE = 15
+private const val COLS = 6
+private const val PER_PAGE = 18
 private val ACCENT = Color(0xFF5AB2FF)
 private val BIG = 96.dp
 

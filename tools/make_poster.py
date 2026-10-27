@@ -16,7 +16,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 W, H = 2560, 1440
 HIRA = "/System/Library/Fonts/Hiragino Sans GB.ttc"
 HELV = "/System/Library/Fonts/HelveticaNeue.ttc"
-CARDS = ["young", "cyclotron", "gas", "prism", "brachistochrone", "photoelectric"]
+CARDS = ["flame", "young", "vsepr", "cyclotron", "elephant", "rutherford"]
 rng = np.random.default_rng(7)
 
 
@@ -123,19 +123,19 @@ def main():
     f_chip = ImageFont.truetype(HIRA, 36, index=2)
     d.text((140, 470), "物理实验室", font=f_title, fill=(255, 255, 255, 255))
     d.text((140 + d.textlength("物理实验室", font=f_title) + 26, 470 + 132 - 68), "Spatial", font=f_title_en, fill=(150, 200, 255, 255))
-    d.text((144, 660), "11 个经典物理实验，", font=f_sub, fill=(220, 228, 250, 255))
+    d.text((144, 660), "18 个物理与化学实验，", font=f_sub, fill=(220, 228, 250, 255))
     d.text((144, 736), "在你的房间里亲手做。", font=f_sub, fill=(220, 228, 250, 255))
-    d.text((146, 840), "Physics Lab Spatial · 11 hands-on experiments for PICO", font=f_en, fill=(160, 175, 210, 255))
+    d.text((146, 840), "Physics Lab Spatial · 18 hands-on physics & chemistry labs", font=f_en, fill=(160, 175, 210, 255))
     x, y = 140, 950
     for text in ["注视 + 捏合 直接操作", "用手把彗星抛进太阳系"]:
         x += chip(img, x, y, text, f_chip) + 22
     x, y = 140, 1048
-    for text in ["精确物理 · 真实数据", "中英双语"]:
+    for text in ["宏观现象 + 微观分子", "精确物理 · 真实数据"]:
         x += chip(img, x, y, text, f_chip) + 22
     d = ImageDraw.Draw(img)
     f_names = ImageFont.truetype(HIRA, 30, index=0)
-    d.text((146, 1214), "开普勒 · 伽利略 · 伯努利 · 阿基米德 · 杨 · 牛顿", font=f_names, fill=(140, 155, 195, 255))
-    d.text((146, 1262), "玻尔兹曼 · 劳伦斯 · 法拉第 · 爱因斯坦", font=f_names, fill=(140, 155, 195, 255))
+    d.text((146, 1214), "开普勒 · 伽利略 · 牛顿 · 杨 · 法拉第 · 玻尔兹曼 · 爱因斯坦", font=f_names, fill=(140, 155, 195, 255))
+    d.text((146, 1262), "卢瑟福 · 本生与基尔霍夫 · 勒夏特列 · 中英双语", font=f_names, fill=(140, 155, 195, 255))
 
     out = img.convert("RGB")
     out.save("docs/store/poster_2560x1440.jpg", quality=92, optimize=True, progressive=True)

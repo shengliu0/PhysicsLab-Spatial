@@ -3,18 +3,26 @@ package com.bytedance.physicslab.solar.lab
 import com.bytedance.physicslab.solar.demos.brachistochrone.BrachistochroneDemo
 import com.bytedance.physicslab.solar.demos.buoyancy.BuoyancyDemo
 import com.bytedance.physicslab.solar.demos.cyclotron.CyclotronDemo
+import com.bytedance.physicslab.solar.demos.electrolysis.ElectrolysisDemo
+import com.bytedance.physicslab.solar.demos.elephant.ElephantDemo
+import com.bytedance.physicslab.solar.demos.equilibrium.EquilibriumDemo
 import com.bytedance.physicslab.solar.demos.expansion.ExpansionDemo
 import com.bytedance.physicslab.solar.demos.faraday.FaradayDemo
+import com.bytedance.physicslab.solar.demos.flame.FlameDemo
 import com.bytedance.physicslab.solar.demos.gas.GasDemo
+import com.bytedance.physicslab.solar.demos.lens.LensDemo
 import com.bytedance.physicslab.solar.demos.pendulum.PendulumDemo
 import com.bytedance.physicslab.solar.demos.photoelectric.PhotoelectricDemo
 import com.bytedance.physicslab.solar.demos.prism.PrismDemo
+import com.bytedance.physicslab.solar.demos.rutherford.RutherfordDemo
 import com.bytedance.physicslab.solar.demos.solar.SolarDemo
+import com.bytedance.physicslab.solar.demos.vsepr.VseprDemo
 import com.bytedance.physicslab.solar.demos.young.YoungDemo
 
 /** Subjects = the catalogue's tabs. */
 enum class Subject(private val zh: String, private val en: String) {
-    MECH("力学", "Mechanics"), OPTICS("光学", "Optics"), HEAT("热学", "Heat"), EM("电磁", "E&M"), MODERN("近代", "Modern");  // i18n-ok (zh/en pairs)
+    MECH("力学", "Mechanics"), OPTICS("光学", "Optics"), HEAT("热学", "Heat"), EM("电磁", "E&M"), MODERN("近代", "Modern"),  // i18n-ok
+    CHEM("化学", "Chemistry");  // i18n-ok (zh/en pairs)
     val label: String get() = tr(zh, en)
 }
 
@@ -30,11 +38,18 @@ object DemoRegistry {
         BuoyancyDemo to Subject.MECH,         // 阿基米德浮力             Archimedes
         YoungDemo to Subject.OPTICS,          // 杨氏双缝干涉             Young 1801
         PrismDemo to Subject.OPTICS,          // 牛顿棱镜色散             Newton 1666
+        LensDemo to Subject.OPTICS,           // 凸透镜成像规律           Kepler 1611
         GasDemo to Subject.HEAT,              // 气体分子运动论           Boltzmann 1872
         ExpansionDemo to Subject.HEAT,        // 热胀冷缩 · 铜球与环      's Gravesande 1720
         CyclotronDemo to Subject.EM,          // 回旋加速器 · 洛伦兹力    Lawrence 1932
         FaradayDemo to Subject.EM,            // 法拉第电磁感应           Faraday 1831
         PhotoelectricDemo to Subject.MODERN,  // 光电效应                 Einstein 1905
+        RutherfordDemo to Subject.MODERN,     // α 粒子散射 · 原子核的发现  Rutherford 1911
+        FlameDemo to Subject.CHEM,            // 焰色反应与原子光谱       Bunsen & Kirchhoff 1860
+        VseprDemo to Subject.CHEM,            // 分子构型 · 价层电子对互斥  Gillespie–Nyholm 1957
+        ElectrolysisDemo to Subject.CHEM,     // 电解水                   Nicholson & Carlisle 1800
+        EquilibriumDemo to Subject.CHEM,      // 化学平衡 · 勒夏特列原理  Le Chatelier 1884
+        ElephantDemo to Subject.CHEM,         // 大象牙膏 · 催化分解       H₂O₂ + KI
     )
     val all: List<Demo> = catalog.map { it.first }
 
@@ -46,15 +61,26 @@ object DemoRegistry {
         "buoyancy" to "Archimedes' Buoyancy",
         "young" to "Young's Double Slit",
         "prism" to "Newton's Prism",
+        "lens" to "Convex Lens Imaging",
         "gas" to "Kinetic Theory of Gases",
         "expansion" to "Thermal Expansion · Ball & Ring",
         "cyclotron" to "Cyclotron · Lorentz Force",
         "faraday" to "Faraday's Induction",
         "photoelectric" to "Photoelectric Effect",
+        "rutherford" to "Alpha Scattering · the Nucleus",
+        "equilibrium" to "Chemical Equilibrium · Le Chatelier",
+        "vsepr" to "Molecular Shapes · VSEPR",
+        "electrolysis" to "Electrolysis of Water",
+        "elephant" to "Elephant Toothpaste · Catalysis",
+        "flame" to "Flame Tests & Atomic Spectra",
     )
     fun titleOf(d: Demo): String = tr(d.title, TITLE_EN[d.id] ?: d.title)
-    /** Catalogue-card title: one line in a 225 dp card, so English drops its " · subtitle". */
-    fun cardTitleOf(d: Demo): String = tr(d.title, (CARD_EN[d.id] ?: TITLE_EN[d.id] ?: d.title).substringBefore(" · "))
-    private val CARD_EN = mapOf("gas" to "Kinetic Theory", "buoyancy" to "Buoyancy", "faraday" to "Faraday Induction")
+    /** Catalogue-card title: one line in a 225 dp card, so English drops its " · subtitle" (Chinese too when > 12 chars). */
+    fun cardTitleOf(d: Demo): String = tr(if (d.title.length > 12) d.title.substringBefore(" · ") else d.title,
+        (CARD_EN[d.id] ?: TITLE_EN[d.id] ?: d.title).substringBefore(" · "))
+    private val CARD_EN = mapOf("gas" to "Kinetic Theory", "buoyancy" to "Buoyancy", "faraday" to "Faraday Induction", "lens" to "Lens Imaging",
+        "rutherford" to "Alpha Scattering", "equilibrium" to "Chemical Equilibrium",
+        "vsepr" to "Molecular Shapes", "electrolysis" to "Electrolysis",
+        "elephant" to "Elephant Toothpaste", "flame" to "Flame Tests")
     fun subjectOf(id: String) = catalog.firstOrNull { it.first.id == id }?.second
 }

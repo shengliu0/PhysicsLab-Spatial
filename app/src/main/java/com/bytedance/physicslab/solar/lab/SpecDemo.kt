@@ -76,6 +76,8 @@ abstract class SpecDemo : Demo {
         val r = root ?: return
         val want = ArrayList<Node>()
         r.walk { if (it.tapRadius > 0f && !it.name.startsWith("Halo_")) want += it }
+        // a node that stopped being pinchable (tapRadius back to 0) must lose its ring too
+        for ((n, h) in halos) { val on = n.tapRadius > 0f; if (h.visible != on) h.visible = on }
         for (n in want) {
             val h = halos.getOrPut(n) { n.add("Halo_${n.name}", haloMesh, haloMat(0.3f)).also { it.billboard = true } }
             // the ring hugs what you SEE (<= 1.6x the drawn radius) — the pinch zone itself stays big;

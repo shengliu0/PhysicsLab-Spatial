@@ -18,7 +18,7 @@ class ShowcaseRenderTest {
     private val moment = mapOf(
         "solar" to (3f to "comets"), "pendulum" to (6f to null), "brachistochrone" to (0.55f to null),
         "buoyancy" to (4f to null), "young" to (2f to null), "prism" to (2f to null), "gas" to (3f to null),
-        "expansion" to (6f to null), "cyclotron" to (4f to null), "faraday" to (1.6f to null), "photoelectric" to (3f to null),
+        "expansion" to (6f to null), "cyclotron" to (4f to null), "faraday" to (1.6f to null), "photoelectric" to (3f to null), "equilibrium" to (3f to "squeezed"),
     )
 
     /** View direction (target -> eye) per demo; default = the review "hero" 3/4 view. */
