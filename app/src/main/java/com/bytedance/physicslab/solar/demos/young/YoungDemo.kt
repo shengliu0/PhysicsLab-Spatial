@@ -37,6 +37,10 @@ import com.bytedance.physicslab.solar.core.P3
 import com.bytedance.physicslab.solar.core.prism.Spectrum
 import com.bytedance.physicslab.solar.core.young.DoubleSlit
 import com.bytedance.physicslab.solar.demos.prism.OptGeo
+import com.bytedance.physicslab.solar.lab.Bi
+import com.bytedance.physicslab.solar.lab.Challenge
+import com.bytedance.physicslab.solar.lab.Lesson
+import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
@@ -527,6 +531,71 @@ object YoungDemo : SpecDemo() {
         labels += LabelSpec("Δy = %.2f mm".format(dy), toWorld(l, (MAG * dy * 1e-3 / 2).toFloat(), 0.20f))
         labels += LabelSpec(tr("波前示意（不按比例）· 捏合铜片可遮缝", "Wavefronts (not to scale) · pinch a brass tab to cover a slit"),
             P3(INSET_POS.x, INSET_POS.y + IY + 0.045f, INSET_POS.z))
+    }
+
+    // ---------------------------------------------------------------- guided track (导学)
+    // KEY INSIGHT: the stripes are two light waves adding and cancelling — cover one slit and they vanish
+    // (the dark stripes even brighten). Their spacing Δy = λL/d: longer λ (red) or closer slits → wider.
+
+    /** True fringe spacing on the screen (mm), at the screen's current distance. */
+    internal fun fringeMm() = DoubleSlit.fringeSpacing(if (white) 550e-9 else lamM(), lCur.toDouble(), dReal()) * 1e3
+
+    override val lesson: Lesson by lazy {
+        Lesson(
+            listOf(
+                LessonStep(
+                    say = Bi("屏上的亮暗条纹来自两条缝。如果遮住其中一条缝，屏上会剩下什么？", "The stripes come from two slits. If you cover one slit, what is left on the screen?"),
+                    options = listOf(
+                        Bi("一样的条纹，暗一半", "Same stripes, half as bright"),
+                        Bi("一半的条纹", "Half of the stripes"),
+                        Bi("条纹消失，一片光斑", "No stripes, one broad glow"),
+                    ),
+                    answer = 2,
+                    onEnter = { if (coverTop) applyCover(0, false); if (coverBot) applyCover(1, false) },   // both slits open
+                ),
+                LessonStep(
+                    say = Bi("捏上方波前图里的铜片「上挡片」（或面板同名按钮），遮住上缝，看屏。", "Pinch the brass “Top tab” in the wave picture above (or its button below) to cover a slit; watch the screen."),
+                    target = "ShutterTop",
+                    done = { coverTop != coverBot },
+                    autoplay = { if (coverBot) onTap("ShutterBot"); if (!coverTop) onTap("ShutterTop") },
+                    reveal = true,
+                    insight = Bi("条纹没了，只剩一片宽光斑，原来的暗纹处反而变亮：暗纹是两列光波互相抵消的结果。", "The stripes are gone — one broad glow, and the old dark stripes got BRIGHTER: dark = two waves cancelling."),
+                ),
+                LessonStep(
+                    say = Bi("再捏一次铜片，把两条缝都打开，条纹回来了。", "Pinch the tab again to open both slits: the stripes come back."),
+                    target = "ShutterTop",
+                    done = { !coverTop && !coverBot },
+                    autoplay = { if (coverTop) onTap("ShutterTop"); if (coverBot) onTap("ShutterBot") },
+                    insight = Bi("路程差是整数个波长处加强成亮纹。真实间距 Δy = λL/d 只有约 2 mm，屏上放大了 20 倍。", "Where the paths differ by whole wavelengths, light adds: bright. The real spacing Δy = λL/d is ~2 mm, drawn ×20."),
+                ),
+                LessonStep(
+                    say = Bi("现在是绿光 532 nm。换成波长更长的红光，条纹会？", "This is green light, 532 nm. Switch to longer-wavelength red light — the stripes will…"),
+                    options = listOf(
+                        Bi("变宽", "Spread wider"),
+                        Bi("变窄", "Squeeze closer"),
+                        Bi("不变", "Stay the same"),
+                    ),
+                    answer = 0,
+                    onEnter = { if (white || lambdaNm >= 600f) applyLambda(532f) },
+                ),
+                LessonStep(
+                    say = Bi("向右拖动面板上的「波长 λ」滑块，调到红光（620 nm 以上），看条纹间距。", "Drag the “Wavelength” slider right to red (above 620 nm) and watch the spacing."),
+                    done = { !white && lambdaNm >= 620f && abs(lCur - lTarget) < 1e-3f },
+                    autoplay = { applyLambda(650f) },
+                    reveal = true,
+                    insight = Bi("变宽了：650 nm 红光的条纹比 532 nm 绿光宽 22%。Δy 与 λ 成正比。", "Wider: 650 nm red stripes are 22% wider than 532 nm green. Δy grows in step with λ."),
+                ),
+            ),
+            challenge = Challenge(
+                say = Bi("用 Δy = λL/d：让两缝都打开时的条纹间距达到 4 mm 以上（看读数）。", "Use Δy = λL/d: with both slits open, make the fringe spacing 4 mm or more (see the readout)."),
+                progress = {
+                    if (white) tr("白光没有单一间距 —— 先选一种颜色", "White light has no single spacing — pick a colour first")
+                    else tr("Δy = %.2f mm（目标 ≥ 4.00 mm）", "Δy = %.2f mm (goal ≥ 4.00 mm)").format(fringeMm())
+                },
+                done = { !white && !coverTop && !coverBot && fringeMm() >= 4.0 },
+                autoplay = { applyD(0); applyLambda(650f); applyL(1.1f); if (coverTop) onTap("ShutterTop"); if (coverBot) onTap("ShutterBot") },
+            ),
+        )
     }
 
     // ---------------------------------------------------------------- interaction

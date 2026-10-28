@@ -26,6 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.bytedance.physicslab.solar.core.P3
 import com.bytedance.physicslab.solar.core.pendulum.Pendulum
+import com.bytedance.physicslab.solar.lab.Bi
+import com.bytedance.physicslab.solar.lab.Challenge
+import com.bytedance.physicslab.solar.lab.Lesson
+import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
@@ -300,8 +304,8 @@ object PendulumDemo : SpecDemo() {
     }
 
     /** Before release each bob was HELD at its angle — so the trace history is that angle, not 0. */
-    private fun restart() {
-        t = 0.0; sampleAcc = 0.0
+    internal fun restart() {
+        t = 0.0; sampleAcc = 0.0; releases++
         for (i in 0 until 3) hist[i].fill(Math.toRadians(amp[i]).toFloat())
     }
 
@@ -310,6 +314,69 @@ object PendulumDemo : SpecDemo() {
         val a = if (on) LARGE else SMALL
         amp[0] = a[0]; amp[1] = a[1]
         restart()
+    }
+
+    // ---------------------------------------------------------------- guided track (导学)
+    // Key insight: the period is set by the length and g alone, T = 2π√(L/g) — NOT by the mass, and (Galileo's
+    // isochronism) not by the amplitude either, as long as the swing is small. A and B share one trace lane, so
+    // "do the two lines still differ?" is answered by looking; the challenge needs both corrections at once
+    // (low g AND a big swing: only Moon + 45° gives T > 3.2 s for the 0.40 m pendulum).
+
+    /** Every (re)release: a bob pinch, "Release all", a mode or planet change. Steps wait for a fresh one. */
+    internal var releases = 0
+    private var releasesAtStep = 0
+    /** A-B phase difference since the last release, in degrees (not wrapped). */
+    internal fun phaseAB(): Double { val T = periods(); return abs(t / T[0] - t / T[1]) * 360.0 }
+    /** Same as the planet chip on the panel. */
+    internal fun selectG(k: Int) { gIdx = k; restart() }
+
+    override val lesson: Lesson by lazy {
+        Lesson(
+            listOf(
+                LessonStep(
+                    say = Bi("铜球 B 比 A 大，重约 3 倍；两根摆长都是 0.40\u00A0m。谁来回摆得更快？", "Bob B is bigger — about 3× heavier than A. Both are 0.40\u00A0m long. Which one swings faster?"),
+                    options = listOf(
+                        Bi("重的 B", "Heavy B"),
+                        Bi("轻的 A", "Light A"),
+                        Bi("一样快", "Equally fast"),
+                    ),
+                    answer = 2,
+                ),
+                LessonStep(
+                    say = Bi("公平比较：捏铜球 A（或面板「铜球 A」），把它的释放角调到和 B 一样的 12°。", "Make it fair: pinch bob A (or “Bob A” below) until its release angle matches B's 12°."),
+                    target = "Bob0",
+                    onEnter = { releasesAtStep = releases },
+                    done = { amp[0] == amp[1] && releases > releasesAtStep },
+                    autoplay = { if (amp[0] == amp[1]) restart() else repeat(AMP_CYCLE.size) { if (amp[0] != amp[1]) onTap("Bob0") } },
+                ),
+                LessonStep(
+                    say = Bi("盯住后面的轨迹板：蓝线 A 和绿线 B 还分得开吗？看 3 个来回。", "Watch the trace board behind: can you still tell blue A from green B? Watch 3 swings."),
+                    done = { amp[0] == amp[1] && t >= 3 * periods()[0] },
+                    reveal = true,
+                    insight = Bi("两条线完全重合：B 重约 3 倍，周期却一模一样（看标签 T）。摆的快慢与质量无关。", "The lines coincide: B is ~3× heavier, yet the periods are identical (see T). Mass does not matter."),
+                ),
+                LessonStep(
+                    say = Bi("把面板切到「大角 10°/45°」：B 从 45° 放手。两条线还重合吗？", "Switch the panel to “Large 10°/45°”: B now starts from 45°. Do the two lines still overlap?"),
+                    onEnter = { releasesAtStep = releases },
+                    done = { largeMode && amp[0] != amp[1] && releases > releasesAtStep && phaseAB() >= 45.0 },
+                    autoplay = { applyLargeMode(true) },
+                    insight = Bi("错开了！摆到 45° 时周期长 3.8%（读数「相差」）。伽利略的等时性只在小角度（约 15° 内）成立。", "They drift apart! At 45° the period is 3.8% longer (ΔT in the readout). Galileo's isochronism holds only for small swings."),
+                ),
+                LessonStep(
+                    say = Bi("把面板上的星球切到「月球」（重力只有地球的 1/6）。摆会变快还是变慢？", "Switch the planet to “Moon” (gravity 1/6 of Earth's). Do the pendulums speed up or slow down?"),
+                    onEnter = { releasesAtStep = releases },
+                    done = { gIdx == 0 && releases > releasesAtStep && t >= periods()[0] },
+                    autoplay = { selectG(0) },
+                    insight = Bi("慢了 √6 ≈ 2.5 倍：来回一次 3.1\u00A0s。T = 2π√(L/g)，只看摆长和 g：摆长 4 倍，周期 2 倍。", "√6 ≈ 2.5× slower: 3.1\u00A0s per swing. T = 2π√(L/g) — only length and g count: 4× the length, 2× the period."),
+                ),
+            ),
+            challenge = Challenge(
+                say = Bi("摆长不许改：让铜球 A 的周期超过 3.2 秒。", "The length is fixed: make bob A's period longer than 3.2\u00A0s."),
+                progress = { tr("A 的周期 %.3f s（目标 > 3.2\u00A0s）", "A's period %.3f s (goal > 3.2\u00A0s)").format(periods()[0]) },
+                done = { periods()[0] > 3.2 },
+                autoplay = { if (gIdx != 0) selectG(0); repeat(AMP_CYCLE.size) { if (amp[0] < AMP_CYCLE.last() - 0.1) onTap("Bob0") } },
+            ),
+        )
     }
 
     @Composable

@@ -36,6 +36,10 @@ import com.bytedance.physicslab.solar.core.lens.ThinLens
 import com.bytedance.physicslab.solar.core.lens.ThinLens.Case
 import com.bytedance.physicslab.solar.demos.prism.OptGeo
 import com.bytedance.physicslab.solar.lab.BakeCache
+import com.bytedance.physicslab.solar.lab.Bi
+import com.bytedance.physicslab.solar.lab.Challenge
+import com.bytedance.physicslab.solar.lab.Lesson
+import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
@@ -669,6 +673,75 @@ object LensDemo : SpecDemo() {
             labels += LabelSpec(tr("实像在这里 v = %.1f cm", "Real image forms here, v = %.1f cm").format(vCm),
                 toWorld(d(vCm), AXIS_Y + (m * TIP_CM * ST).toFloat() - 0.050f, 0f))
         }
+    }
+
+    // ---------------------------------------------------------------- guided track (导学)
+    // KEY INSIGHT: the candle's distance u, measured against f and 2f, decides the image: beyond 2f
+    // smaller, between f and 2f larger (both real and inverted), inside f no screen catches anything —
+    // an upright virtual image (magnifier); at f exactly, no image at all.
+
+    /** Case of the candle where it actually stands (not where it is heading). */
+    internal fun caseNow() = ThinLens.classify(uCur, f)
+    /** Image size / candle size on the screen side (v / u); NaN with no real image. */
+    internal fun magAbs() = if (vCm.isInfinite() || vCm <= 0) Double.NaN else vCm / uCur
+
+    override val lesson: Lesson by lazy {
+        Lesson(
+            listOf(
+                LessonStep(
+                    say = Bi("蜡烛在 f 和 2f 之间，屏上是倒立、放大的清晰像。把蜡烛移到 2f 以外，像会？", "The candle is between f and 2f: a sharp, inverted, enlarged image. Move the candle beyond 2f — the image will…"),
+                    options = listOf(
+                        Bi("变得更大", "Grow larger"),
+                        Bi("倒立、缩小", "Inverted, smaller"),
+                        Bi("变成正立", "Turn upright"),
+                    ),
+                    answer = 1,
+                    onEnter = { if (ThinLens.classify(uT, f) != Case.BETWEEN) setCase(Case.BETWEEN) },
+                ),
+                LessonStep(
+                    say = Bi("捏住蜡烛往远离透镜的方向拖，越过 2F 标记，再捏光屏自动对焦（或面板「u > 2f」）。", "Pinch-drag the candle away from the lens past the 2F mark, then pinch the screen to focus (or “u > 2f” below)."),
+                    target = "Candle",
+                    done = { caseNow() == Case.BEYOND_2F && sharp },
+                    autoplay = { setCase(Case.BEYOND_2F) },
+                    reveal = true,
+                    insight = Bi("倒立、缩小，像落在 f 和 2f 之间：f = 10 cm、u = 30 cm 时 v = 15 cm，像只有一半大 —— 照相机。", "Inverted and smaller: for u > 2f the image lands between f and 2f. f = 10, u = 30 cm → v = 15 cm, half size — a camera."),
+                ),
+                LessonStep(
+                    say = Bi("再把蜡烛推到焦点 F 以内（比 f 还近）。光屏上会出现？", "Now push the candle inside the focal point F (closer than f). What will the screen show?"),
+                    options = listOf(
+                        Bi("更大的倒立像", "A bigger inverted image"),
+                        Bi("怎么移屏都没像", "No image, anywhere"),
+                        Bi("很小的正立像", "A tiny upright image"),
+                    ),
+                    answer = 1,
+                ),
+                LessonStep(
+                    say = Bi("把蜡烛拖到 F 以内（或面板「u < f · 放大镜」），再前后拖光屏找像。", "Drag the candle inside F (or “u < f · magnifier” below), then slide the screen to hunt for an image."),
+                    target = "Candle",
+                    done = { caseNow() == Case.INSIDE_F },
+                    autoplay = { setCase(Case.INSIDE_F) },
+                    reveal = true,
+                    insight = Bi("屏上接不到：光穿过透镜后散开。逆着光看，蜡烛一侧有正立、放大的虚像（虚线）—— 放大镜。", "Nothing on the screen: the light leaves spreading out. Looking back, an upright, enlarged virtual image (dashed) — a magnifier."),
+                ),
+                LessonStep(
+                    say = Bi("把蜡烛恰好放在 F 上（拖到 F 附近会吸附，或面板「u = f」）。", "Put the candle exactly on F (it snaps there when released nearby, or tap “u = f” below)."),
+                    target = "Candle",
+                    done = { caseNow() == Case.AT_F },
+                    autoplay = { setCase(Case.AT_F) },
+                    insight = Bi("光线平行射出，哪里都不成像。F 正是实像与虚像的分界，2F 是放大与缩小的分界。", "The light leaves parallel: no image anywhere. F divides real from virtual; 2F divides larger from smaller."),
+                ),
+            ),
+            challenge = Challenge(
+                say = Bi("换成 f = 15 cm 的透镜，在光屏上得到和蜡烛一样大的清晰像。", "Switch to the f = 15 cm lens and get a sharp image on the screen exactly as tall as the candle."),
+                progress = {
+                    val m = magAbs()
+                    tr("f = %d cm · 像是蜡烛的 %s 倍 · %s", "f = %d cm · image %s× the candle · %s").format(
+                        F_CM[fIdx], if (m.isNaN()) "—" else "%.2f".format(m), if (sharp) tr("清晰", "sharp") else tr("不清晰", "not sharp"))
+                },
+                done = { fIdx == 1 && sharp && abs(magAbs() - 1.0) < 0.03 },
+                autoplay = { applyF(1); setCase(Case.AT_2F) },
+            ),
+        )
     }
 
     // ---------------------------------------------------------------- interaction

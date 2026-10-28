@@ -28,7 +28,11 @@ import com.bytedance.physicslab.solar.core.P3
 import com.bytedance.physicslab.solar.core.gas.GasScale
 import com.bytedance.physicslab.solar.core.gas.HardSphereGas
 import com.bytedance.physicslab.solar.core.gas.Maxwell
+import com.bytedance.physicslab.solar.lab.Bi
+import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lang
+import com.bytedance.physicslab.solar.lab.Lesson
+import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
@@ -415,8 +419,8 @@ object GasDemo : SpecDemo() {
     /** Handle: volume 100 -> 75 -> 50 % (Boyle). Heater: 300 -> 600 -> 150 K (Gay-Lussac). */
     override fun onTap(name: String) {
         when (name) {
-            "PistonHandle" -> vFrac = when { vFrac > 0.8f -> 0.75f; vFrac > 0.6f -> 0.5f; else -> 1f }
-            "Heater" -> tSetK = when { tSetK < 250f -> 300f; tSetK < 450f -> 600f; else -> 150f }
+            "PistonHandle" -> setVolume(when { vFrac > 0.8f -> 0.75f; vFrac > 0.6f -> 0.5f; else -> 1f })
+            "Heater" -> setHeater(when { tSetK < 250f -> 300f; tSetK < 450f -> 600f; else -> 150f })
         }
     }
 
@@ -436,6 +440,74 @@ object GasDemo : SpecDemo() {
         tEma = gas.temperature()
     }
 
+    // ---------------------------------------------------------------- guided track (导学)
+    // Key insight: pressure IS molecules hitting the walls. Halve the volume -> twice the hits per second ->
+    // twice the pressure (Boyle). Double T -> each molecule only ~1.4x faster (v ∝ √T), but it hits both harder
+    // AND more often, so p doubles too (p ∝ T). The challenge combines both: at half volume, halve T for 1 atm.
+
+    /** User changes (pinch or slider): a step waits for a fresh squeeze / a fresh heating. */
+    internal var squeezes = 0
+    internal var heatings = 0
+    private var countAtStep = 0
+    internal fun setVolume(f: Float) { if (f < vFrac - 1e-4f) squeezes++; vFrac = f }
+    internal fun setHeater(k: Float) { if (k > tSetK + 0.5f) heatings++; tSetK = k }
+    /** What the dial and the thermometer show. */
+    internal val gaugeAtm get() = pEma / pRef
+    internal val thermoK get() = GasScale.kelvin(tEma)
+    private val pistonArrived get() = abs(gas.xLo - gas.pistonTarget) < 1e-4
+
+    override val lesson: Lesson by lazy {
+        Lesson(
+            listOf(
+                LessonStep(
+                    say = Bi("把活塞推进去，让体积减半（分子数、温度都不变）。压强会变成？", "Push the piston in to halve the volume (same molecules, same temperature). The pressure becomes…"),
+                    options = listOf(
+                        Bi("不变", "Unchanged"),
+                        Bi("约 2 倍", "≈ 2×"),
+                        Bi("约 4 倍", "≈ 4×"),
+                    ),
+                    answer = 1,
+                ),
+                LessonStep(
+                    say = Bi("捏活塞手柄两次（或把「体积 V」滑到 50%）。等温度计回到 300\u00A0K，再读压力表。", "Pinch the piston handle twice (or set “Volume V” to 50%). Once the thermometer is back at 300\u00A0K, read the gauge."),
+                    target = "PistonHandle",
+                    onEnter = { countAtStep = squeezes },
+                    // squeezing heats the gas (the gauge overshoots to ~2.4 atm): Boyle is read once the heater floor has
+                    // brought it back to the set temperature (~17 s at x0.5)
+                    done = { squeezes > countAtStep && vFrac <= 0.5f && pistonArrived && gaugeAtm >= 1.8 && abs(thermoK - tSetK) <= 0.05 * tSetK },
+                    autoplay = { if (vFrac <= 0.5f) onTap("PistonHandle"); repeat(2) { if (vFrac > 0.5f) onTap("PistonHandle") } },
+                    reveal = true,
+                    insight = Bi("约 1.05 → 2.2\u00A0atm，翻倍：同样的分子挤进一半空间，撞壁次数翻倍。玻意耳：pV = 常数。", "1.05 → 2.2\u00A0atm, doubled: the same molecules in half the space hit the walls twice as often. Boyle: pV = const."),
+                ),
+                LessonStep(
+                    say = Bi("再猜：把加热板调到 600\u00A0K（绝对温度翻倍），分子的平均速率会？", "Predict: set the heater to 600\u00A0K (twice the absolute temperature). The molecules' mean speed will…"),
+                    options = listOf(
+                        Bi("翻倍", "Double"),
+                        Bi("约 1.4 倍", "≈ 1.4×"),
+                        Bi("不变", "Same"),
+                    ),
+                    answer = 1,
+                ),
+                LessonStep(
+                    say = Bi("捏加热板（或把「加热板 T」滑到 600\u00A0K），看分子变红，读数里的平均速率涨多少。", "Pinch the heater (or slide “Heater T” to 600\u00A0K): the molecules turn red — how much does the mean speed grow?"),
+                    target = "Heater",
+                    onEnter = { countAtStep = heatings },
+                    done = { heatings > countAtStep && tSetK >= 590f && thermoK >= 560.0 },
+                    autoplay = { if (tSetK >= 590f) onTap("Heater"); repeat(2) { if (tSetK < 590f) onTap("Heater") } },
+                    reveal = true,
+                    insight = Bi("只快了 √2 ≈ 1.4 倍（476 → 673\u00A0m/s）。但撞得更狠又更勤，相乘就是 2 倍：p ∝ T。", "Only √2 ≈ 1.4× faster (476 → 673\u00A0m/s). But hits are harder AND more frequent — together 2×: p ∝ T."),
+                ),
+            ),
+            challenge = Challenge(
+                say = Bi("活塞别动（体积 50%），只调加热板，让压强回到约 1\u00A0atm。", "Leave the piston at 50% and use only the heater: bring the pressure back to about 1\u00A0atm."),
+                progress = { tr("压强 %.2f atm（目标 1.00 ± 0.15）", "Pressure %.2f atm (goal 1.00 ± 0.15)").format(gaugeAtm) },
+                // the right setting (half of 300 K) AND the gauge there: overshooting to 100 K passes 1 atm on the way down
+                done = { vFrac <= 0.5f && tSetK in 120f..180f && abs(gaugeAtm - 1.0) <= 0.15 },
+                autoplay = { repeat(2) { if (vFrac > 0.5f) onTap("PistonHandle") }; repeat(3) { if (abs(tSetK - 150f) > 1f) onTap("Heater") } },
+            ),
+        )
+    }
+
     @Composable
     override fun Panel() {
         LabPanel(readout) {
@@ -448,8 +520,8 @@ object GasDemo : SpecDemo() {
                     N_CHOICES.forEachIndexed { k, n -> SegmentItem(selected = nIdx == k, onClick = { nIdx = k }, title = { Text("N $n") }) }
                 }
             }
-            LabSlider(tr("加热板 T", "Heater T"), tSetK, 100f..600f, "%d K".format(tSetK.roundToInt())) { tSetK = (it / 10f).roundToInt() * 10f }
-            LabSlider(tr("体积 V", "Volume V"), vFrac, V_MIN..1f, "%d%%".format((vFrac * 100).roundToInt())) { vFrac = (it * 20f).roundToInt() / 20f }
+            LabSlider(tr("加热板 T", "Heater T"), tSetK, 100f..600f, "%d K".format(tSetK.roundToInt())) { setHeater((it / 10f).roundToInt() * 10f) }
+            LabSlider(tr("体积 V", "Volume V"), vFrac, V_MIN..1f, "%d%%".format((vFrac * 100).roundToInt())) { setVolume((it * 20f).roundToInt() / 20f) }
             LabRow {
                 Button(onClick = { equalSpeeds() }) { Text(tr("全部同速（玻尔兹曼）", "All same speed (Boltzmann)")) }
                 Spacer(Modifier.width(16.dp))

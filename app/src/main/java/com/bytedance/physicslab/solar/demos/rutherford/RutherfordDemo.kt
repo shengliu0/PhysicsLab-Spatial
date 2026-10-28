@@ -36,6 +36,10 @@ import com.bytedance.physicslab.solar.core.rutherford.AlphaCounter
 import com.bytedance.physicslab.solar.core.rutherford.CoulombHyperbola
 import com.bytedance.physicslab.solar.core.rutherford.Rutherford
 import com.bytedance.physicslab.solar.demos.cyclotron.MeshKit
+import com.bytedance.physicslab.solar.lab.Bi
+import com.bytedance.physicslab.solar.lab.Challenge
+import com.bytedance.physicslab.solar.lab.Lesson
+import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
@@ -877,6 +881,78 @@ object RutherfordDemo : SpecDemo() {
     )
 
     fun resetCounts() { counter.reset(); updateBars() }
+
+    // ---------------------------------------------------------------- guided track (导学)
+    // KEY INSIGHT: almost every alpha goes straight through the gold (the atom is mostly empty: ~96 % turn by
+    // less than 5° at 5.5 MeV), yet about 1 in 12 600 bounces back (θ > 90°) — only a tiny, dense, positive
+    // nucleus can do that, and only for alphas aimed within b ≈ 21 fm of it (1/7700 of the atom's radius).
+    private var firedAtStep = 0.0
+    private var resetSeen = false
+    private var bouncedAtStep = 0L
+    private val bounceFraction get() = Rutherford.fractionBeyond(PI / 2, d, nt)
+
+    override val lesson: Lesson by lazy {
+        Lesson(
+            listOf(
+                LessonStep(
+                    say = Bi("金箔约 1 μm 厚，有几千层金原子。α 粒子射向它，大多数会怎样？", "The gold foil is ~1 μm thick: thousands of atom layers. What do most alphas do?"),
+                    options = listOf(
+                        Bi("被挡住弹回", "Bounce back"),
+                        Bi("直接穿过", "Go straight through"),
+                        Bi("都偏一大角", "All bend a lot"),
+                    ),
+                    answer = 1,
+                    onEnter = { thomson = false; foilIdx = 0; eMeV = 5.5f; beamOn = true },
+                ),
+                LessonStep(
+                    say = Bi("点面板「计数清零」重新计数，数满 5 万个 α，看环形荧光屏上的绿色闪光在哪。", "Tap “Reset counts” below, count 50 000 alphas, and see where the green flashes land on the ring screen."),
+                    onEnter = { firedAtStep = counter.fired; resetSeen = false },
+                    done = {
+                        if (counter.fired < firedAtStep) resetSeen = true
+                        resetSeen && counter.fired >= 5e4
+                    },
+                    autoplay = { beamOn = true; resetCounts() },
+                    reveal = true,
+                    insight = Bi("几乎都直线穿过：约 96% 偏转不到 5°，闪光挤在正前方。原子里几乎是空的。", "Nearly all go straight through: ~96 % bend by less than 5°, the flashes crowd dead ahead. The atom is mostly empty."),
+                ),
+                LessonStep(
+                    say = Bi("那会不会有 α 被弹回来（偏转超过 90°）？", "Will any alpha bounce back (turn by more than 90°)?"),
+                    options = listOf(
+                        Bi("一个也不会", "Never"),
+                        Bi("极少数会", "A very few"),
+                        Bi("约一半", "About half"),
+                    ),
+                    answer = 1,
+                ),
+                LessonStep(
+                    say = Bi("捏住显微镜（或面板「显微镜 → 换角度」）转到 120° 以上，等读数第 3 行的「弹回」计数增加。", "Pinch the microscope (or “Microscope → next θ”) to 120° or more; wait for “bounced” (readout line 3) to rise."),
+                    target = "Microscope",
+                    onEnter = { bouncedAtStep = counter.beyond90 },
+                    done = { !thomson && microDeg >= 120 && counter.beyond90 > bouncedAtStep },
+                    autoplay = { beamOn = true; while (microDeg < 120) onTap("Microscope") },
+                    reveal = true,
+                    insight = Bi("极少数弹回：约每 1.26 万个 α 才 1 个。像炮弹打在薄纸上被弹回 —— 里面一定藏着又小又重的东西。", "A very few: about 1 in 12 600. Like a shell bouncing off tissue paper — something tiny and heavy must be inside."),
+                ),
+                LessonStep(
+                    say = Bi("右边是放大的原子核。捏青色瞄准点（或面板「瞄准点 → 换 b」），把 b 减到 10 fm 以下。", "On the right, the magnified nucleus. Pinch the cyan aim marker (or “Aim → next b”) until b is 10 fm or less."),
+                    target = "Aim",
+                    onEnter = { if (abs(aimFm) <= 10.5) aimFm = 40.0 },
+                    done = { !thomson && abs(aimFm) <= 10.5 },
+                    autoplay = { while (abs(aimFm) > 10.5) onTap("Aim") },
+                    insight = Bi("b = 40 fm 只偏 55°，b = 10 fm 偏 128°。只有几乎正对核（b < 21 fm）才弹回，所以那么罕见。", "b = 40 fm turns only 55°, b = 10 fm turns 128°. Only near-direct hits (b < 21 fm) bounce back — hence so rare."),
+                ),
+            ),
+            challenge = Challenge(
+                say = Bi("用金箔让反弹更常见：至少每 1 万个 α 弹回 1 个（看读数第 3 行）。提示：α 快些好还是慢些好？", "With the gold foil, make bounce-backs at least 1 in 10 000 (readout line 3). Hint: faster or slower alphas?"),
+                progress = {
+                    if (thomson) tr("汤姆孙原子一个也弹不回 —— 先关掉「汤姆孙模型」", "A Thomson atom never bounces one — switch the Thomson model off")
+                    else tr("现在约每 %.0f 个弹回 1 个（目标 ≤ 10000）", "Now about 1 in %.0f bounce back (goal ≤ 10 000)").format(1 / bounceFraction)
+                },
+                done = { !thomson && bounceFraction >= 1e-4 },
+                autoplay = { thomson = false; foilIdx = 0; eMeV = 4.5f },
+            ),
+        )
+    }
 
     @Composable
     override fun Panel() {

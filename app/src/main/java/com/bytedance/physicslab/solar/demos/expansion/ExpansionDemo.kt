@@ -29,6 +29,10 @@ import com.bytedance.physicslab.solar.core.expansion.BallRing
 import com.bytedance.physicslab.solar.core.expansion.Blackbody
 import com.bytedance.physicslab.solar.core.expansion.Expansion
 import com.bytedance.physicslab.solar.core.expansion.Metals
+import com.bytedance.physicslab.solar.lab.Bi
+import com.bytedance.physicslab.solar.lab.Challenge
+import com.bytedance.physicslab.solar.lab.Lesson
+import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
@@ -407,6 +411,7 @@ object ExpansionDemo : SpecDemo() {
             if (dir < 0 && s >= h - 1e-5f && next < h) { s = h; resting = 1; wandPos = axisPoint(s); return false }
             if (dir > 0 && s <= -h + 1e-5f && next > -h) { s = -h; resting = -1; wandPos = axisPoint(s); return false }
         }
+        if (s > 0f && next <= 0f) { throughs++; throughC = ballC }      // the ball's centre went down through the ring
         s = next; wandPos = axisPoint(s)
         if (s == axisTarget) { dropV = 0f; return true }
         return false
@@ -575,7 +580,7 @@ object ExpansionDemo : SpecDemo() {
         when (name) {
             "Ball" -> tryRing()
             "Burner" -> heatBall()
-            "Lamp" -> { manual(); lampOn = !lampOn }
+            "Lamp" -> { manual(); lampOn = !lampOn; if (lampOn) lampLits++ }
         }
     }
 
@@ -593,11 +598,87 @@ object ExpansionDemo : SpecDemo() {
     fun heatBall() {
         manual()
         if (burnerOn) { burnerOn = false; cur = null; return }
+        burns++
         cur = null; resting = 0
         queue.addLast(Cmd.TO_FLAME); queue.addLast(Cmd.HEAT)
     }
 
-    fun quench() { manual(); cur = null; resting = 0; burnerOn = false; queue.addLast(Cmd.TO_BEAKER); queue.addLast(Cmd.QUENCH) }
+    fun quench() { quenches++; manual(); cur = null; resting = 0; burnerOn = false; queue.addLast(Cmd.TO_BEAKER); queue.addLast(Cmd.QUENCH) }
+
+    // ---------------------------------------------------------------- guided track (导学)
+    // Key insight: heat dilates EVERYTHING by the same factor 1 + αΔT — holes included. A heated ring's hole
+    // gets BIGGER (the classic wrong guess: "the ring swells inward and the hole shrinks"). The real numbers
+    // are tiny (brass α = 19×10⁻⁶/K: a 50 µm gap on Ø25.4 mm closes ~104 K above the ring), which is why the
+    // clearance meter reads micrometres. Challenge = apply it: pass a red-hot ball by heating the RING. At the default
+    // x10 time-lapse a ball on the ring cools ~25 K/s and drops by itself at ~290 °C: the challenge asks for > 350 °C
+    // (needs the lamp) and starts the moment the ball sticks, so there is time to act.
+
+    /** Event counters: user quenches, lamp lightings, burner heatings, ball passages down through the ring. */
+    internal var quenches = 0
+    internal var lampLits = 0
+    internal var burns = 0
+    internal var throughs = 0
+    /** Ball temperature (°C) at the last passage. */
+    internal var throughC = 0.0
+    internal val holeUm get() = br.holeD * 1e6
+    private var countAtStep = 0
+    private var holeAtStep = 0.0
+
+    override val lesson: Lesson by lazy {
+        Lesson(
+            listOf(
+                LessonStep(
+                    say = Bi("刚烧过的铜球卡在环上了（右边间隙表是负的）。点面板「水冷」，把它冷却到室温。", "The flame-hot ball is stuck on the ring (the gap meter on the right is negative). Tap “Quench” to cool it to room temperature."),
+                    onEnter = { countAtStep = quenches },
+                    done = { quenches > countAtStep && ballC < 40.0 },
+                    autoplay = { quench() },
+                    insight = Bi("冷了：球缩回 Ø25.40\u00A0mm，比孔（Ø25.45\u00A0mm）只小 50\u00A0µm，不到一根头发粗。", "Cold again: the ball is back to Ø25.40\u00A0mm, just 50\u00A0µm under the Ø25.45\u00A0mm hole — less than a hair."),
+                ),
+                LessonStep(
+                    say = Bi("接下来用酒精灯只加热圆环。环受热膨胀，中间的孔会？", "Next, the spirit lamp heats only the ring. The ring expands — so its hole will…"),
+                    options = listOf(
+                        Bi("变小（往里胀）", "Shrinks"),
+                        Bi("变大", "Grows"),
+                        Bi("不变", "Same"),
+                    ),
+                    answer = 1,
+                ),
+                LessonStep(
+                    say = Bi("捏酒精灯（或面板「酒精灯」）点火，盯住圆环和右边的间隙表。", "Pinch the spirit lamp (or “Spirit lamp” below) and watch the ring and the gap meter on the right."),
+                    target = "Lamp",
+                    onEnter = { countAtStep = lampLits; holeAtStep = holeUm },
+                    done = { lampLits > countAtStep && holeUm - holeAtStep >= 100.0 },
+                    autoplay = { if (!lampOn) onTap("Lamp") },
+                    reveal = true,
+                    insight = Bi("孔变大了！受热的环像照片放大一样整体变大，孔也跟着变大：每热 100\u00A0°C 大 48\u00A0µm。", "The hole grows! A heated ring enlarges like a photo, hole included: +48\u00A0µm per 100\u00A0°C."),
+                ),
+                LessonStep(
+                    say = Bi("捏本生灯（或面板「本生灯」），把铜球烧到发红，到温会自动熄火。", "Pinch the Bunsen burner (or “Burner” below) to heat the ball red-hot; it switches off by itself."),
+                    target = "Burner",
+                    onEnter = { countAtStep = burns },
+                    done = { burns > countAtStep && ballC >= minOf(500.0, metal.heatTargetC - 30) },   // still heating while the insight shows
+                    autoplay = { heatBall() },
+                    insight = Bi("烧到 700\u00A0°C 时，黄铜球直径会胀大 0.33\u00A0mm（ΔD = α·D·ΔT）—— 比孔大多了。", "At 700\u00A0°C the brass ball grows 0.33\u00A0mm wider (ΔD = α·D·ΔT) — far more than the 50\u00A0µm gap."),
+                ),
+                LessonStep(
+                    say = Bi("捏铜球，把烧红的球放回圆环上。", "Pinch the ball to lower the red-hot ball onto the ring."),
+                    target = "Ball",
+                    onEnter = { countAtStep = throughs },
+                    done = { restState == 1 && ballC > 300.0 },
+                    autoplay = { tryRing() },
+                ),
+            ),
+            challenge = Challenge(
+                say = Bi("卡住了！别等它冷却：让它在 350\u00A0°C 以上穿过圆环。", "Stuck! Don't wait for it to cool: get it through the ring while it is still above 350\u00A0°C."),
+                progress = {
+                    if (throughs > countAtStep) tr("刚才穿过时球是 %d\u00A0°C（要 > 350\u00A0°C）", "It passed at %d\u00A0°C (needs > 350\u00A0°C)").format(throughC.roundToInt())
+                    else tr("球 %d\u00A0°C · 环 %d\u00A0°C · 间隙 %+d\u00A0µm", "Ball %d\u00A0°C · ring %d\u00A0°C · gap %+d\u00A0µm").format(ballC.roundToInt(), ringC.roundToInt(), clearanceUm.roundToInt())
+                },
+                done = { throughs > countAtStep && throughC > 350.0 },
+                autoplay = { if (!lampOn) onTap("Lamp") },
+            ),
+        )
+    }
 
     @Composable
     override fun Panel() {

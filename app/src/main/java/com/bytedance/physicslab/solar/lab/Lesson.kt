@@ -47,6 +47,8 @@ class Challenge(
     val progress: () -> String,
     val done: () -> Boolean,
     val autoplay: () -> Unit = {},
+    /** Called when the challenge begins (e.g. remember a baseline). */
+    val onEnter: () -> Unit = {},
 )
 
 class Lesson(val steps: List<LessonStep>, val challenge: Challenge? = null)
@@ -94,6 +96,19 @@ object LessonRunner {
     }
 
     fun restart() { start(lesson, onPing); collapsed = false }
+
+    /** Review only (UiPreviewTest): show step [i] — its instruction, or its insight when [insight] — or the challenge (i = total). */
+    internal fun previewAt(i: Int, insight: Boolean) {
+        val l = lesson ?: return
+        index = i.coerceAtMost(l.steps.size); collapsed = false
+        val s = l.steps.getOrNull(i)
+        when {
+            s == null -> { phase = if (l.challenge != null) Phase.CHALLENGE else Phase.FINISHED; challengeText = runCatching { l.challenge?.progress?.invoke() }.getOrNull() ?: "" }
+            insight && s.insight != null -> { phase = Phase.INSIGHT; insightText = (if (s.reveal) verdict() + "\n" else "") + s.insight.text }
+            else -> phase = Phase.STEP
+        }
+        epoch++
+    }
 
     /** The user picked option [i] of the current PREDICT step. */
     fun choose(i: Int) {
@@ -165,6 +180,7 @@ object LessonRunner {
             else -> Phase.FINISHED
         }
         if (phase == Phase.STEP) runCatching { l.steps[index].onEnter() }
+        if (phase == Phase.CHALLENGE) runCatching { l.challenge?.onEnter?.invoke() }
         epoch++
     }
 }

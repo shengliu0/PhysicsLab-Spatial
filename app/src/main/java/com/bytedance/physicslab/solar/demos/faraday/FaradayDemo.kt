@@ -35,6 +35,10 @@ import com.bytedance.physicslab.solar.core.faraday.Coil
 import com.bytedance.physicslab.solar.core.faraday.Galvanometer
 import com.bytedance.physicslab.solar.core.faraday.Induction
 import com.bytedance.physicslab.solar.demos.cyclotron.MeshKit
+import com.bytedance.physicslab.solar.lab.Bi
+import com.bytedance.physicslab.solar.lab.Challenge
+import com.bytedance.physicslab.solar.lab.Lesson
+import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
@@ -110,6 +114,9 @@ object FaradayDemo : SpecDemo() {
     private var dotPhase = 0.0; private var wirePhase = 0.0
     private var sampleAcc = 0.0
     private val histPhi = FloatArray(TRACE_N); private val histEmf = FloatArray(TRACE_N); private var head = 0
+    // lesson bookkeeping: signed current extremes since resetPeaks(), and the peak |I| in the auto programme
+    private var iMax = 0.0; private var iMin = 0.0; private var autoPeak = 0.0; private var pushSign = 1
+    private fun resetPeaks() { iMax = 0.0; iMin = 0.0; autoPeak = 0.0 }
 
     private lateinit var magnetNode: Node; private lateinit var sled: Node
     private lateinit var fieldNode: Node
@@ -409,6 +416,9 @@ object FaradayDemo : SpecDemo() {
         emf = ind.emfN(turns, x, v, pole)
         cur = emf / rTot
         galvo.step(cur, dt.toDouble())
+        if (cur > iMax) iMax = cur
+        if (cur < iMin) iMin = cur
+        if (mode == 0 && abs(cur) > autoPeak) autoPeak = abs(cur)
 
         // traces (sim time, 30 Hz)
         sampleAcc += dt
@@ -511,6 +521,61 @@ object FaradayDemo : SpecDemo() {
             "MagnetN", "MagnetS" -> pole = -pole
             "Bobbin" -> turnsIdx = (turnsIdx + 1) % TURNS.size
         }
+    }
+
+    // ---------------------------------------------------------------- guided track (导学)
+    // KEY INSIGHT: a current flows only while the flux through the coil CHANGES. The magnet resting deep
+    // inside the coil (largest flux) gives ZERO; pulling it out reverses the current (Lenz); faster or more
+    // turns, bigger current (auto programme, 200 turns: 0.33 mA at 16 cm/s, 0.65 mA at 32 cm/s).
+    override val lesson: Lesson by lazy {
+        Lesson(
+            listOf(
+                LessonStep(
+                    say = Bi("把磁铁推进线圈，然后让它停在线圈里不动。这时电流计的指针会？", "Push the magnet into the coil, then hold it still inside. What does the meter needle do?"),
+                    options = listOf(
+                        Bi("偏得最大", "Swings most"),
+                        Bi("回到零", "Back to zero"),
+                        Bi("停在偏转处", "Stays over"),
+                    ),
+                    answer = 1,
+                ),
+                LessonStep(
+                    say = Bi("拖动面板「磁铁位置」滑块到中间，把磁铁推进线圈，然后松手停住，看指针。", "Drag the “Magnet” slider to the middle to push the magnet into the coil, then stop and watch the needle."),
+                    onEnter = { resetPeaks() },
+                    done = { mode == 2 && abs(x) < 0.03 && abs(v) < 0.003 && maxOf(iMax, -iMin) > 0.1e-3 && abs(galvo.theta) < 0.04 },
+                    autoplay = { mode = 2; manualTarget = 0f },
+                    reveal = true,
+                    insight = Bi("回到零！磁铁停在线圈里，磁通量 Φ 最大却不再变化，ε = −NΔΦ/Δt = 0。", "Back to zero! At rest inside the coil the flux Φ is largest but no longer changing: ε = −NΔΦ/Δt = 0."),
+                ),
+                LessonStep(
+                    say = Bi("推进时指针偏向一边。现在把磁铁拔出来，指针会？", "Pushing in swung the needle one way. Now pull the magnet out — the needle will…"),
+                    options = listOf(
+                        Bi("偏向同一边", "Swing the same way"),
+                        Bi("偏向另一边", "Swing the other way"),
+                        Bi("不动", "Not move"),
+                    ),
+                    answer = 1,
+                ),
+                LessonStep(
+                    say = Bi("把「磁铁位置」滑块拖回最左，把磁铁拔出线圈，看指针和下方电流曲线。", "Drag the “Magnet” slider back to the far left to pull it out; watch the needle and the current trace."),
+                    onEnter = { pushSign = if (iMax >= -iMin) 1 else -1; resetPeaks() },
+                    done = { mode == 2 && x < -0.6 * X0 && (if (pushSign > 0) iMin < -0.1e-3 else iMax > 0.1e-3) },
+                    autoplay = { mode = 2; manualTarget = -1f },
+                    reveal = true,
+                    insight = Bi("偏向另一边：拔出时 Φ 减小，电流反向。感应电流总在阻碍磁通变化（楞次定律：来拒去留）。", "The other way: pulling out, Φ falls and the current reverses. It always opposes the change (Lenz's law)."),
+                ),
+            ),
+            challenge = Challenge(
+                say = Bi("切回「插入·停·拔出」，让电流峰值超过 0.50 mA（16 cm/s、200 匝时只有 0.33 mA）。", "Back to “In · hold · out”: get the current peak above 0.50 mA (16 cm/s with 200 turns gives 0.33 mA)."),
+                progress = {
+                    if (mode != 0) tr("先切回「插入·停·拔出」", "Switch back to “In · hold · out” first")
+                    else tr("电流峰值 %.2f mA（目标 ≥ 0.50 mA）", "Peak current %.2f mA (goal ≥ 0.50 mA)").format(autoPeak * 1e3)
+                },
+                onEnter = { resetPeaks() },
+                done = { mode == 0 && autoPeak >= 0.5e-3 },
+                autoplay = { mode = 0; t = 0.0; speedIdx = 2 },
+            ),
+        )
     }
 
     @Composable

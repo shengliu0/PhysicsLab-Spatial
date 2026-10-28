@@ -26,6 +26,10 @@ import androidx.compose.ui.unit.dp
 import com.bytedance.physicslab.solar.core.P3
 import com.bytedance.physicslab.solar.core.buoyancy.Buoy
 import com.bytedance.physicslab.solar.core.buoyancy.OverflowRig
+import com.bytedance.physicslab.solar.lab.Bi
+import com.bytedance.physicslab.solar.lab.Challenge
+import com.bytedance.physicslab.solar.lab.Lesson
+import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
@@ -255,6 +259,7 @@ object BuoyancyDemo : SpecDemo() {
 
     /** New object/fluid: can full to the spout, beaker empty, cube hanging just above the liquid. */
     fun reset() {
+        resets++
         rig = OverflowRig(A, Buoy.SOLIDS[objIdx].rho, Buoy.FLUIDS[fluidIdx].rho, (2 * HX * 2 * HZ).toDouble(), FLOOR, SPOUT, k = K_SCALE, restLen = L0)
         rig.hangAt(SPOUT + START_ABOVE)
         rig.refill()
@@ -428,6 +433,79 @@ object BuoyancyDemo : SpecDemo() {
 
     override fun onTap(name: String) {
         if (name == "Cube") toggleLower() else if (name == "Beaker") pourBack()
+    }
+
+    // ---------------------------------------------------------------- guided track (导学)
+    // Key insight (Archimedes): the buoyant force IS the weight of the liquid pushed aside — the overflow weighs
+    // exactly what the spring scale "lost", and a floating block pushes aside exactly its own weight (so a denser
+    // liquid floats it higher). The challenge turns that into a density comparison: ice sinks in alcohol.
+
+    /** reset() calls (every object/liquid choice, "Start over"): a step waits for a fresh, settled run. */
+    internal var resets = 0
+    private var resetsAtStep = 0
+    /** Everything at rest (the columns' = signs light up after this). */
+    internal val settled get() = settledFor > 0.6
+    /** Same as the object / liquid chips on the panel. */
+    internal fun selectSolid(k: Int) { objIdx = k; lowered = true; reset() }
+    internal fun selectFluid(k: Int) { fluidIdx = k; lowered = true; reset() }
+    private fun settledFresh(obj: Int, fluid: Int = -1) =
+        objIdx == obj && (fluid < 0 || fluidIdx == fluid) && lowered && resets > resetsAtStep && settled
+
+    override val lesson: Lesson by lazy {
+        Lesson(
+            listOf(
+                LessonStep(
+                    say = Bi("铝块挂在测力计上。把它浸没在水里：测力计少掉的读数，和溢出来的水，哪个重？", "An aluminium block hangs from a spring scale. Sunk in water, which weighs more: the scale's loss or the overflow?"),
+                    options = listOf(
+                        Bi("少掉的读数", "Scale's loss"),
+                        Bi("溢出的水", "Overflow"),
+                        Bi("一样重", "Same"),
+                    ),
+                    answer = 2,
+                ),
+                LessonStep(
+                    say = Bi("在面板上选「铝块 2.70」：它会自动沉进溢水杯。等右边四根柱子停稳。", "Pick “Aluminium 2.70” on the panel: it sinks into the overflow can. Wait for the four columns on the right to settle."),
+                    onEnter = { resetsAtStep = resets },
+                    done = { settledFresh(3) },
+                    autoplay = { selectSolid(3) },
+                    reveal = true,
+                    insight = Bi("一样重！测力计少了 26.9\u00A0N，溢出的水也正好重 26.9\u00A0N：浮力 = 排开液体的重力。", "Equal! The scale lost 26.9\u00A0N and the overflow weighs exactly 26.9\u00A0N: buoyancy = weight of liquid displaced."),
+                ),
+                LessonStep(
+                    say = Bi("再猜：木块会浮在水上。它挤出去的水，和木块自己比？", "Predict: a wooden block floats on water. The water it pushes out, compared with the block's own weight?"),
+                    options = listOf(
+                        Bi("更轻", "Lighter"),
+                        Bi("一样重", "Same"),
+                        Bi("更重", "Heavier"),
+                    ),
+                    answer = 1,
+                ),
+                LessonStep(
+                    say = Bi("选「木块 0.60」：它浮起来，测力计归零。比一比「G物」和「G排」两根柱子。", "Pick “Wood 0.60”: it floats and the scale drops to zero. Compare the “Weight” and “Overflow” columns."),
+                    onEnter = { resetsAtStep = resets },
+                    done = { settledFresh(0) },
+                    autoplay = { selectSolid(0) },
+                    reveal = true,
+                    insight = Bi("一样重：16.2\u00A0N 的木块挤出 16.2\u00A0N 的水。漂浮时浮力 = 重力，所以只浸入 60%。", "Same: the 16.2\u00A0N block pushes out 16.2\u00A0N of water. Floating means buoyancy = weight, so only 60% is under."),
+                ),
+                LessonStep(
+                    say = Bi("把液体换成「浓盐水 1.20」：木块会浮得更高，还是更低？", "Switch the liquid to “Brine 1.20”: does the wood float higher or lower?"),
+                    onEnter = { resetsAtStep = resets },
+                    done = { settledFresh(0, 2) },
+                    autoplay = { if (objIdx != 0) selectSolid(0); selectFluid(2) },
+                    insight = Bi("更高：盐水更「重」，只浸入 50%（0.60/1.20）就挤出 16.2\u00A0N。人在死海能躺着漂。", "Higher: brine is denser, so 50% under (0.60/1.20) already pushes out 16.2\u00A0N — why you float in the Dead Sea."),
+                ),
+            ),
+            challenge = Challenge(
+                say = Bi("冰块总会浮着吗？只换液体，让冰块沉下去。", "Does ice always float? Change only the liquid and make the ice block sink."),
+                progress = {
+                    val o = Buoy.SOLIDS[objIdx]; val f = Buoy.FLUIDS[fluidIdx]
+                    tr("%s放进%s：%s", "%s in %s: %s").format(nm(o), tr(f.name, f.en), if (Buoy.floats(o.rho, f.rho)) tr("浮着", "floats") else tr("沉下去了", "sinks"))
+                },
+                done = { objIdx == 1 && !Buoy.floats(Buoy.SOLIDS[1].rho, Buoy.FLUIDS[fluidIdx].rho) && lowered && settled },
+                autoplay = { selectSolid(1); selectFluid(0) },
+            ),
+        )
     }
 
     @Composable

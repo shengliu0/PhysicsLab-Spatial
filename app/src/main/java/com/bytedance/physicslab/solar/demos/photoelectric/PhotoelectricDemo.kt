@@ -33,6 +33,10 @@ import com.bytedance.physicslab.solar.core.photoelectric.Photo
 import com.bytedance.physicslab.solar.core.photoelectric.Photoelectron
 import com.bytedance.physicslab.solar.core.photoelectric.PhotoTube
 import com.bytedance.physicslab.solar.demos.cyclotron.MeshKit
+import com.bytedance.physicslab.solar.lab.Bi
+import com.bytedance.physicslab.solar.lab.Challenge
+import com.bytedance.physicslab.solar.lab.Lesson
+import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
@@ -421,6 +425,69 @@ object PhotoelectricDemo : SpecDemo() {
             }
             "Cathode" -> metalIdx = (metalIdx + 1) % Photo.METALS.size
         }
+    }
+
+    // ---------------------------------------------------------------- guided track (导学)
+    // KEY INSIGHT: whether electrons come out depends on the light's FREQUENCY, not its brightness. On sodium
+    // (W = 2.28 eV, λ₀ = 544 nm) bright red 650 nm light (1.91 eV photons) frees none; dim violet 405 nm
+    // (3.06 eV) does — brightness only sets HOW MANY; the fastest carry E_k,max = hν − W = 0.78 eV (U_c = 0.78 V).
+    private var intensityAtStep = 0f
+    private val aliveElectrons get() = el.count { it.alive }
+
+    override val lesson: Lesson by lazy {
+        Lesson(
+            listOf(
+                LessonStep(
+                    say = Bi("钠阴极正被 405 nm 紫光照着，电子不断飞出。换成红光（650 nm），还有电子吗？", "Violet 405 nm light is knocking electrons off the sodium cathode. Switch to red (650 nm) — any electrons?"),
+                    options = listOf(
+                        Bi("有，少一些", "Yes, fewer"),
+                        Bi("一个也没有", "None at all"),
+                        Bi("有，飞得更快", "Yes, faster ones"),
+                    ),
+                    answer = 1,
+                    onEnter = { metalIdx = 1; lambda = 405f; intensity = 0.7f; voltage = 0f },
+                ),
+                LessonStep(
+                    say = Bi("捏住后方的汞灯（或面板「汞灯 → 换谱线」），一直换到红光 650 nm。", "Pinch the lamp at the back (or “Lamp → next line” below) until it shows red 650 nm."),
+                    target = "LampHousing",
+                    done = { lambda >= 600f && ek <= 0.0 },
+                    autoplay = { while (lambda < 649f) onTap("LampHousing") },
+                    reveal = true,
+                    insight = Bi("一个也没有：红光光子只有 1.91 eV，小于钠的逸出功 2.28 eV，一个光子打不出一个电子。", "None: a red photon carries only 1.91 eV, less than sodium's work function 2.28 eV — it cannot free an electron."),
+                ),
+                LessonStep(
+                    say = Bi("那把红光开到最亮呢？光强 100% 时会有电子吗？", "So make the red light as bright as it goes. At 100 % intensity, any electrons?"),
+                    options = listOf(
+                        Bi("会，够亮就行", "Yes, if bright enough"),
+                        Bi("还是没有", "Still none"),
+                    ),
+                    answer = 1,
+                ),
+                LessonStep(
+                    say = Bi("向右拖动面板「光强」滑块到 100%，盯住阴极。", "Drag the “Intensity” slider right to 100 % and watch the cathode."),
+                    onEnter = { intensityAtStep = intensity },
+                    done = { lambda >= 600f && intensity >= 0.95f && abs(intensity - intensityAtStep) > 0.01f },
+                    autoplay = { intensity = 1f },
+                    reveal = true,
+                    insight = Bi("还是没有！更亮只是光子更多，每个仍只有 1.91 eV。出不出电子看频率（颜色），不看亮度。", "Still none! Brighter means more photons, each still 1.91 eV. Frequency (colour) decides, not brightness."),
+                ),
+                LessonStep(
+                    say = Bi("把「波长 λ」滑块拖回 450 nm 以下的紫光，再把「光强」调到 20% 以下（很暗）。", "Drag “Wavelength” back below 450 nm (violet), then turn “Intensity” below 20 % (very dim)."),
+                    done = { lambda <= 450f && intensity <= 0.2f && intensity > 0.01f && ek > 0.0 && aliveElectrons > 0 },
+                    autoplay = { lambda = 405f; intensity = 0.15f },
+                    insight = Bi("很暗的紫光照样打出电子，只是少些。405 nm 时 E_k,max = 3.06 − 2.28 = 0.78 eV，与亮度无关。", "Dim violet still frees electrons, just fewer. At 405 nm E_k,max = 3.06 − 2.28 = 0.78 eV, whatever the brightness."),
+                ),
+            ),
+            challenge = Challenge(
+                say = Bi("把「电压 U_AK」调成负值，让电流刚好降到 0：这就是遏止电压，量出最快电子的能量。", "Make “Anode U_AK” negative until the current just reaches 0: that stopping voltage measures the fastest electrons."),
+                progress = {
+                    if (ek <= 0.0) tr("现在没有光电子 —— 先换成紫光", "No photoelectrons now — pick violet light first")
+                    else tr("U_AK = %+.2f V · I = %.3f μA（目标：I 刚好归零，误差 0.05 V 内）", "U_AK = %+.2f V · I = %.3f μA (goal: I just reaches 0, within 0.05 V)").format(voltage, current * 1e6)
+                },
+                done = { ek > 0.0 && abs(voltage + ek) <= 0.05 },
+                autoplay = { if (ek <= 0.0) lambda = 405f; voltage = -ek.toFloat() },
+            ),
+        )
     }
 
     @Composable

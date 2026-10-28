@@ -35,6 +35,10 @@ import com.bytedance.physicslab.solar.core.prism.Glasses
 import com.bytedance.physicslab.solar.core.prism.PrismOptics
 import com.bytedance.physicslab.solar.core.prism.Ray2
 import com.bytedance.physicslab.solar.core.prism.Spectrum
+import com.bytedance.physicslab.solar.lab.Bi
+import com.bytedance.physicslab.solar.lab.Challenge
+import com.bytedance.physicslab.solar.lab.Lesson
+import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
@@ -838,6 +842,81 @@ object PrismDemo : SpecDemo() {
         }
         if (crucis) labels += LabelSpec(tr("第二棱镜：只偏折，不再分色", "2nd prism: bends it, no new colours"), P3(screen2.pos.x, screen2.pos.y + 0.10f, 0.05f))
         else labels += LabelSpec(tr("折射率 n(λ)：曲线越陡，光谱越长", "Index n(λ): steeper curve, longer spectrum"), P3(CH_O.x + CH_W / 2, CH_O.y + CH_H + 0.06f, CH_O.z))
+    }
+
+    // ---------------------------------------------------------------- guided track (导学)
+    // KEY INSIGHT: white light is a mixture; glass bends violet more than red (n depends on λ), so a
+    // prism SORTS the colours — it does not make them: one colour sent through a second prism is bent
+    // again by its own amount but never splits (Newton's experimentum crucis).
+
+    /** Crucis is on, settled, and the slot passes one pure colour (not crown glass's 150 nm mix). */
+    internal fun crucisPure() = crucis && !dirty && !armMoving && passNm.isNotEmpty() && passNm.last() - passNm.first() <= 80
+    /** How far prism 2 bends the selected colour (degrees). */
+    internal fun bend2Deg() = deg(abs(dev2))
+    private var glassAtStep = 0
+    private var selAtStep = 0
+
+    override val lesson: Lesson by lazy {
+        Lesson(
+            listOf(
+                LessonStep(
+                    say = Bi("一束细细的白光射进玻璃棱镜。哪种颜色被玻璃偏折得最多？", "A thin beam of white light enters the glass prism. Which colour does the glass bend the most?"),
+                    options = listOf(
+                        Bi("红光", "Red"),
+                        Bi("紫光", "Violet"),
+                        Bi("各色一样多", "All the same"),
+                    ),
+                    answer = 1,
+                    onEnter = { if (crucis) applyCrucis(false); if (tirCount > 0) applyInc(0f) },
+                ),
+                LessonStep(
+                    say = Bi("捏住棱镜（或面板「棱镜」按钮）换一种玻璃，看光屏上红端和紫端怎么变。", "Pinch the prism (or “Prism” below) to change the glass; watch the red and violet ends on the screen."),
+                    target = "Prism",
+                    onEnter = { glassAtStep = glassIdx },
+                    done = { glassIdx != glassAtStep && !dirty },
+                    autoplay = { onTap("Prism") },
+                    reveal = true,
+                    insight = Bi("紫光总是偏折最多：玻璃对紫光折射率大。光谱长度：重火石 10.8°，冕牌只有 1.6°。", "Violet is always bent most: glass has a higher index for violet. Spectrum: 10.8° in dense flint, only 1.6° in crown."),
+                ),
+                LessonStep(
+                    say = Bi("牛顿只让一种颜色穿过屏上的小缝，射进第二个棱镜。出来的光会？", "Newton let just one colour through a slot in the screen into a second prism. What comes out?"),
+                    options = listOf(
+                        Bi("又分出彩虹", "A new rainbow"),
+                        Bi("同一颜色，只偏折", "Same colour, just bent"),
+                        Bi("变回白光", "White again"),
+                    ),
+                    answer = 1,
+                ),
+                LessonStep(
+                    say = Bi("打开面板「判决性实验」（或捏光屏）。冕牌玻璃分不纯，要用火石或重火石。", "Turn on “Experimentum crucis” (or pinch the screen). Use flint or dense flint: crown can't isolate a colour."),
+                    target = "Screen1",
+                    done = { crucisPure() },
+                    autoplay = { if (glassIdx == 0) applyGlass(2); if (!crucis) onTap("Screen1") },
+                    reveal = true,
+                    insight = Bi("一种颜色进去，同一种颜色出来：第二棱镜只让它再偏折，不再分色。颜色本来就在白光里。", "One colour in, the same colour out: prism 2 bends it again but makes no new colours. They were in the white light."),
+                ),
+                LessonStep(
+                    say = Bi("捏光屏（或面板颜色按钮）换一种颜色送进第二棱镜。红光和紫光谁偏得多？", "Pinch the screen (or a colour button) to send another colour into prism 2. Is red or violet bent more?"),
+                    target = "Screen1",
+                    onEnter = { selAtStep = selIdx },
+                    done = { selIdx != selAtStep && crucis && !dirty && !armMoving },
+                    autoplay = { onTap("Screen1") },
+                    insight = Bi("每种颜色有自己固定的偏折：重火石里红光 65.3°，紫光 73.3°，和第一个棱镜一样。", "Each colour keeps its own bend: in dense flint red 65.3°, violet 73.3° — same order as in prism 1."),
+                ),
+            ),
+            challenge = Challenge(
+                say = Bi("让第二棱镜把选出的光偏折超过 72°。想想：选哪种颜色，用哪种玻璃？", "Make prism 2 bend the selected colour by more than 72°. Think: which colour, which glass?"),
+                progress = {
+                    when {
+                        !crucis -> tr("先打开「判决性实验」", "Turn on “Experimentum crucis” first")
+                        !crucisPure() -> tr("颜色不纯 —— 换火石玻璃", "Impure colour — use flint glass")
+                        else -> tr("%s光偏折 %.1f°（目标 > 72°）", "%s bent %.1f° (goal > 72°)").format(SEL_NAMES[selIdx], bend2Deg())
+                    }
+                },
+                done = { crucisPure() && bend2Deg() > 72.0 },
+                autoplay = { applyGlass(2); applyCrucis(true); applySel(SEL_NM.size - 1) },
+            ),
+        )
     }
 
     // ---------------------------------------------------------------- interaction

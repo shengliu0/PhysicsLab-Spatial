@@ -73,9 +73,15 @@ class UiPreviewTest {
                 val l = d.lesson ?: continue
                 LabHost.previewAs(d); LessonRunner.start(l)
                 capture(act, File(out, "${tag}_lesson_${d.id}.png")) { com.bytedance.physicslab.solar.content.LessonCard() }; n++
-                val p = l.steps.indexOfFirst { it.isPredict }
-                if (p > 0) { while (LessonRunner.index < p) LessonRunner.skip()
-                    capture(act, File(out, "${tag}_lesson_${d.id}_predict.png")) { com.bytedance.physicslab.solar.content.LessonCard() }; n++ }
+                // every step's instruction and insight, and the challenge, so long later cards get looked at too
+                for (i in l.steps.indices) {
+                    LessonRunner.previewAt(i, false)
+                    capture(act, File(out, "${tag}_lesson_${d.id}_s${i + 1}.png")) { com.bytedance.physicslab.solar.content.LessonCard() }; n++
+                    if (l.steps[i].insight != null) { LessonRunner.previewAt(i, true)
+                        capture(act, File(out, "${tag}_lesson_${d.id}_s${i + 1}_insight.png")) { com.bytedance.physicslab.solar.content.LessonCard() }; n++ }
+                }
+                if (l.challenge != null) { LessonRunner.previewAt(l.steps.size, false)
+                    capture(act, File(out, "${tag}_lesson_${d.id}_challenge.png")) { com.bytedance.physicslab.solar.content.LessonCard() }; n++ }
             }
             if (only.isEmpty()) {
                 capture(act, File(out, "${tag}_topbar.png")) { LabTopBar { } }; n++

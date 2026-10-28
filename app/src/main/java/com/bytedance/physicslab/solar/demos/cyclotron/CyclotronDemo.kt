@@ -34,6 +34,10 @@ import com.bytedance.physicslab.solar.core.cyclotron.Cyclotron
 import com.bytedance.physicslab.solar.core.cyclotron.Lorentz
 import com.bytedance.physicslab.solar.core.cyclotron.Phys
 import com.bytedance.physicslab.solar.core.cyclotron.Track
+import com.bytedance.physicslab.solar.lab.Bi
+import com.bytedance.physicslab.solar.lab.Challenge
+import com.bytedance.physicslab.solar.lab.Lesson
+import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
@@ -497,6 +501,76 @@ object CyclotronDemo : SpecDemo() {
     private fun world(x: Float, y: Float, z: Float): P3 {
         val c = cos(YAW); val s = sin(YAW)
         return P3(CENTER.x + c * x + s * z, CENTER.y + y, CENTER.z - s * x + c * z)
+    }
+
+    // ---------------------------------------------------------------- guided track (导学)
+    // KEY INSIGHT: in a magnetic field one lap takes T = 2πm/(qB) whatever the speed — faster particles
+    // just run a bigger circle — so a FIXED-frequency voltage keeps kicking them in step while the
+    // spiral widens. Detune it 4 % and the kicks slip; the exit energy (qBR)²/2m does not depend on U.
+
+    /** The shown trajectory matches the current settings (no flight pending on the worker). */
+    internal fun settled() = !dirty && job == null
+    /** Energy at extraction (MeV), NaN when the beam never gets out. */
+    internal fun exitMeV() = if (track.extracted) track.ek[track.extractIdx] / Phys.MEV else Double.NaN
+    private fun setTuning(k: Int) { if (detuneIdx != k) { detuneIdx = k; dirty = true } }
+    private var thetaAtStep = 0.0
+    private var uAtStep = 60f
+
+    override val lesson: Lesson by lazy {
+        Lesson(
+            listOf(
+                LessonStep(
+                    say = Bi("每过一次缝，质子被电压推一下，更快、圈更大。外圈的大圈转一圈用时会？", "Each gap crossing kicks the proton: faster, bigger circle. Does a big outer lap take more or less time?"),
+                    options = listOf(
+                        Bi("更长，圈大", "Longer: bigger circle"),
+                        Bi("更短，速度快", "Shorter: it's faster"),
+                        Bi("一样长", "Exactly the same"),
+                    ),
+                    answer = 2,
+                    onEnter = { setTuning(1) },
+                ),
+                LessonStep(
+                    say = Bi("盯住发光的珠子：它们像车轮辐条排成一线，同时过缝。看 3 圈和读数第 3 行。", "Watch the beads: lined up like a wheel spoke, they cross the gap together. Watch 3 laps and readout line 3."),
+                    onEnter = { thetaAtStep = theta },
+                    done = { settled() && theta - thetaAtStep >= 3.0 },
+                    reveal = true,
+                    insight = Bi("一样长：1.3 T 下质子每半圈都约 25 ns，半径却大了近 3 倍。T = 2πm/qB 与速度无关。", "The same: at 1.3 T every proton half-lap takes ~25 ns while the radius grows ~3×. T = 2πm/(qB) has no speed in it."),
+                ),
+                LessonStep(
+                    say = Bi("把面板射频切到「射频 +4%」：电压比粒子转圈快 4%。看辐条和示波器上的点。", "Switch the panel to “RF +4%”: the voltage runs 4% faster than the orbit. Watch the spoke and the scope dots."),
+                    done = { detuneIdx != 1 && settled() && !track.extracted },
+                    autoplay = { setTuning(2) },
+                    insight = Bi("失步：每圈错开 14°，几圈后反被减速，最高约 0.5 MeV，出不去。频率必须等于 qB/2πm。", "Out of step: crossings slip 14° per lap, soon it is braked — peak ~0.5 MeV, never out. The RF must equal qB/2πm."),
+                ),
+                LessonStep(
+                    say = Bi("切回同步后，把 D 形盒电压 U 加大。质子引出时的能量会？", "Back in tune, raise the dee voltage U. The protons' exit energy will…"),
+                    options = listOf(
+                        Bi("变高", "Go up"),
+                        Bi("不变，圈数变少", "Stay, fewer laps"),
+                        Bi("变低", "Go down"),
+                    ),
+                    answer = 1,
+                ),
+                LessonStep(
+                    say = Bi("点「同步」，再把「D 形盒电压 U」拖动 20 kV 以上，看读数第 2 行。", "Tap “Tuned f=qB/2πm”, then drag “Dee voltage” by 20 kV or more; watch readout line 2."),
+                    onEnter = { uAtStep = uKV },
+                    done = { detuneIdx == 1 && abs(uKV - uAtStep) >= 20f && settled() && track.extracted },
+                    autoplay = { setTuning(1); uKV = if (uKV < 80f) 100f else 50f; dirty = true },
+                    reveal = true,
+                    insight = Bi("几乎不变：E = (qBR)²/2m 只看 B 和半径。U 从 60 加到 100 kV，过缝 21 次变 13 次。", "Barely changes: E = (qBR)²/2m depends on B and radius only. 60 → 100 kV: 21 crossings become 13, still ~1.2 MeV."),
+                ),
+            ),
+            challenge = Challenge(
+                say = Bi("让粒子引出时的能量超过 1.5 MeV。提示：加电压没用。", "Get the beam out with more than 1.5 MeV. Hint: more voltage won't help."),
+                progress = {
+                    val e = exitMeV()
+                    if (e.isNaN()) tr("粒子出不去 —— 先调回同步", "Beam stuck — tune the RF first")
+                    else tr("引出 %.2f MeV（目标 > 1.50 MeV）", "Out at %.2f MeV (goal > 1.50 MeV)").format(e)
+                },
+                done = { settled() && detuneIdx == 1 && exitMeV() > 1.5 },
+                autoplay = { setTuning(1); speciesIdx = 0; bT = 1.5f; dirty = true },
+            ),
+        )
     }
 
     // ---------------------------------------------------------------- interaction
