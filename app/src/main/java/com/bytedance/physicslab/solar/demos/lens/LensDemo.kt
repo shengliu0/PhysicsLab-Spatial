@@ -770,8 +770,24 @@ object LensDemo : SpecDemo() {
     override val tapTargets get() = listOf(
         TapTarget("Candle", "蜡烛 → 下一种情况", "Candle → next case"),
         TapTarget("Lens", "透镜 → 换焦距", "Lens → next focal length"),
-        TapTarget("Screen", "光屏 → 自动对焦", "Screen → auto-focus"),
+        TapTarget("Screen", "光屏 → 自动对焦", "Screen → auto-focus", enabled = { focusBlock() == null }, why = focusBlock()),
     )
+
+    /** Why auto-focus would not move the screen right now (null = it would). */
+    private fun focusBlock(): Bi? {
+        val v = ThinLens.imageDistance(uT, f)
+        return when {
+            ThinLens.classify(uT, f) == Case.AT_F || v.isInfinite() ->
+                Bi("u = f：不成像，没有可对焦的位置", "u = f: no image, nothing to focus on")
+            v < 0 ->
+                Bi("虚像：光屏接不到，用眼睛透过透镜看", "Virtual image: no screen can catch it")
+            v > S_MAX ->
+                Bi("像在光具座之外，光屏够不着", "The image is past the bench end")
+            abs(sT - v) < 1e-6 ->
+                Bi("已经对焦：光屏就在像的位置", "Already in focus: the screen is at the image")
+            else -> null
+        }
+    }
 
     override fun isTarget(name: String) = name == "Candle" || name == "Lens" || name == "Screen"
     override fun isDragTarget(name: String) = name == "Candle" || name == "Screen"
@@ -873,7 +889,7 @@ object LensDemo : SpecDemo() {
                 Spacer(Modifier.width(16.dp))
                 LabSwitch(tr("光线", "Rays"), showRays) { showRays = it }
                 LabSwitch(tr("虚像", "Virtual image"), showVirtual) { showVirtual = it }
-                Button(onClick = { autoFocus() }) { Text(tr("自动对焦", "Auto-focus")) }
+                Button(onClick = { autoFocus() }, enabled = focusBlock() == null) { Text(tr("自动对焦", "Auto-focus")) }
             }
             LabRow {
                 SegmentControl {

@@ -69,6 +69,7 @@ internal class EarthMoonView(private val tex: SolarTex) {
     // ---- state ----
     var az = AZ_FREE; private set
     private var azShown = AZ_FREE
+    private var azRot = Float.NaN
     var lock: Eclipse.Event? = null; private set
     private var lockW = 0f
     private var clock = 0.0
@@ -157,7 +158,7 @@ internal class EarthMoonView(private val tex: SolarTex) {
     // ================================================================ build
 
     fun build(parent: Node): Node {
-        az = AZ_FREE; azShown = AZ_FREE; lock = null; lockW = 0f; clock = 0.0; builtEvent = null; ageJd = Double.NaN
+        az = AZ_FREE; azShown = AZ_FREE; azRot = Float.NaN; lock = null; lockW = 0f; clock = 0.0; builtEvent = null; ageJd = Double.NaN
         markShown = -1; moonTintShown = -1; backShown = -1; coronaShown = -1; coneShown = -1; nodeHot = -1; lensX = 9f; lensY = 9f; darkX = 9f; darkY = 9f
         rays.clear(); photons.clear(); marks.clear(); markBodies.clear(); edges.clear()
         val sphere = MeshGen.sphere(1f, 48, 96, MeshGen.SphereUv.EQUIRECT)
@@ -346,7 +347,8 @@ internal class EarthMoonView(private val tex: SolarTex) {
         val target = azTarget()
         azShown = if (dt == 0f) target else azShown + (target - azShown) * min(1f, dt * 5f)
         val rot = Q.axisAngle(1f, 0f, 0f, Math.toRadians(TILT_DEG.toDouble()).toFloat()) * Q.axisAngle(0f, 1f, 0f, Math.toRadians(azShown.toDouble()).toFloat())
-        root.rot = rot
+        // touch the transform only when the view actually turned (a still view costs no transform upload; a turn is a visible change)
+        if (azShown != azRot) { azRot = azShown; root.rot = rot }
         val lw = if (ev != null) 1f else 0f
         lockW = if (dt == 0f) lw else lockW + (lw - lockW) * min(1f, dt * 4f)
         if (abs(lockW - lw) < 0.002f) lockW = lw

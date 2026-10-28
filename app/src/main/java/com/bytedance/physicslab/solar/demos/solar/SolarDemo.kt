@@ -694,8 +694,11 @@ object SolarDemo : SpecDemo() {
             TapTarget("EM_Earth", "地球 → 转动视角", "Earth → turn view"),
             TapTarget("EM_Sun", "太阳 → 回到全景", "Sun → overview"),
         )
-        Mode.TO_SCALE -> listOf(TapTarget("TS_Sun", "太阳", "Sun") { ts.selected == 9 }) +
-            (0 until 8).map { i -> TapTarget("TS_Bubble_$i", Solar.planets[i].chinese, enName(Solar.planets[i].name)) { ts.selected == i } }
+        Mode.TO_SCALE -> listOf(TapTarget("TS_Sun", "太阳", "Sun", enabled = { ts.selected != 9 },
+                why = Bi("已经在看太阳 —— 捏一个放大镜换行星", "Already showing the Sun — pinch a bubble for a planet")) { ts.selected == 9 }) +
+            (0 until 8).map { i -> TapTarget("TS_Bubble_$i", Solar.planets[i].chinese, enName(Solar.planets[i].name), enabled = { ts.selected != i },
+                why = Bi("已经选中%s —— 捏另一个放大镜或太阳".format(Solar.planets[i].chinese), "%s is already selected — pinch another bubble or the Sun".format(enName(Solar.planets[i].name)))) { ts.selected == i } }
+        // sizes: a second pinch on the selected body deselects it (the readout goes back to the stage hint)
         Mode.SIZES -> SizeLineupView.PINCH[sz.stage].map { i -> TapTarget("SZ_Body_$i", ScaleFacts.nameZh(i), ScaleFacts.nameEn(i)) { sz.selected == i } } +
             TapTarget("SZ_Lens", "🔍 金色圈 → 下一阶段", "🔍 Gold ring → next stage")
     }
@@ -714,6 +717,7 @@ object SolarDemo : SpecDemo() {
         name.startsWith("TS_Bubble_") -> name.removePrefix("TS_Bubble_").toIntOrNull()?.let { compareLine(it) }
         name == "SZ_Lens" -> tr("阶段 %d：%s", "Stage %d: %s").format(sz.stage + 1, STAGE_LABELS[sz.stage].drop(2))
         name.startsWith("SZ_Body_") -> name.removePrefix("SZ_Body_").toIntOrNull()?.let { i ->
+            if (sz.selected != i) return@let tr("取消选择%s", "Deselected %s").format(tr(ScaleFacts.nameZh(i), ScaleFacts.nameEn(i)))
             tr("%s：直径 %.2f 个地球 · 体积 %s 个地球", "%s: %.2f Earths across · %s Earths by volume").format(tr(ScaleFacts.nameZh(i), ScaleFacts.nameEn(i)), ScaleFacts.re(i), volText(ScaleFacts.earthVolumes(i)))
         }
         else -> null                                         // planets answer with their Kepler card
@@ -733,7 +737,7 @@ object SolarDemo : SpecDemo() {
             name == "TS_Sun" -> { ts.selected = 9; return }
             name.startsWith("TS_Bubble_") -> { ts.selected = name.removePrefix("TS_Bubble_").toIntOrNull() ?: -1; return }
             name == "SZ_Lens" -> { sz.next(); return }
-            name.startsWith("SZ_Body_") -> { sz.selected = name.removePrefix("SZ_Body_").toIntOrNull() ?: -1; return }
+            name.startsWith("SZ_Body_") -> { val i = name.removePrefix("SZ_Body_").toIntOrNull() ?: -1; sz.selected = if (sz.selected == i) -1 else i; return }
         }
         if (name == "Sun") {
             sunWasOverview = model.selected !in 0..7

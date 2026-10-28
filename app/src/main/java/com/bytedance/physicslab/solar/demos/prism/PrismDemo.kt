@@ -976,7 +976,7 @@ object PrismDemo : SpecDemo() {
             LabRow {
                 LabSlider(tr("转动棱镜", "Turn prism"), dIncDeg, -12f..20f, "%+.0f°".format(dIncDeg)) { applyInc(it) }
                 Spacer(Modifier.width(12.dp))
-                Button(onClick = { applyInc(0f) }) { Text(tr("最小偏向", "Minimum deviation")) }
+                Button(onClick = { applyInc(0f) }, enabled = dIncDeg != 0f) { Text(tr("最小偏向", "Minimum deviation")) }
             }
             if (crucis) LabRow {
                 Text(tr("选出颜色  ", "Select colour  "))
