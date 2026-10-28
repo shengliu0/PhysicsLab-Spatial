@@ -42,6 +42,7 @@ import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
 import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
+import com.bytedance.physicslab.solar.lab.Sfx
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
 import com.bytedance.physicslab.solar.lab.tr
@@ -558,7 +559,13 @@ object RutherfordDemo : SpecDemo() {
             val lo = microDeg - 2.5; val hi = microDeg + 2.5
             counter.fire(rate * dt, dd, ntt, sg, !thomson) { th ->
                 val deg = th * 180 / PI
-                if (deg >= lo && deg < hi) eyeGlow = minOf(1f, eyeGlow + 0.7f)
+                if (deg >= lo && deg < hi) {
+                    eyeGlow = minOf(1f, eyeGlow + 0.7f)
+                    // sound: a scintillation in the microscope's ±2.5° window — the counter clicks like a Geiger tube
+                    Sfx.play(Sfx.TICK, 0.3f, 1.2f, (F0.x + R * cos(th).toFloat()) / 0.9f)
+                }
+                // sound: an alpha bounced BACK (θ > 90°, ~1 in 10⁴ on gold) — a louder, lower clack, wherever it lands
+                if (deg > 90) Sfx.play(Sfx.CLACK, 0.55f, 0.9f, (F0.x + R * cos(th).toFloat()) / 0.9f)
                 val band = if (deg < 30) 0 else if (deg < 90) 1 else 2
                 if (vis.nextDouble() < pBand[band]) launch(th)
             }

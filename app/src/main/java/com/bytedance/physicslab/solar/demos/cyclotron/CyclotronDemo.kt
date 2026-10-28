@@ -40,6 +40,7 @@ import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
 import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
+import com.bytedance.physicslab.solar.lab.Sfx
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
 import com.bytedance.physicslab.solar.lab.tr
@@ -444,7 +445,27 @@ object CyclotronDemo : SpecDemo() {
         cursor.scale = P3(0.0012f, CH_UY + CH_UA - CH_EY0 + 0.02f, 0.0012f)
         tr.at(tauTr, tmp)
         cursorDot.pos = P3(cx, eY(tmp[2]), CH_Z + 0.008f); cursorDot.uniformScale(0.0075f)
+        tracerSounds(tr, tauTr, dt)
         updateReadout(); updateLabels()
+    }
+
+    private var soundTrack: Track? = null
+    private var soundTau = 0.0
+    /** Sounds follow the scope's tracer bunch (the spoke crosses together, so one bunch = what you hear). */
+    private fun tracerSounds(tr: Track, tau: Double, dt: Float) {
+        if (tr !== soundTrack || tau < soundTau || dt <= 0f) { soundTrack = tr; soundTau = tau; return }
+        val tEx = if (tr.extracted) tr.extractIdx * tr.dt else Double.POSITIVE_INFINITY
+        val n = tr.crossings.size.coerceAtLeast(1)
+        for ((i, c) in tr.crossings.withIndex()) if (c.t > soundTau && c.t <= tau && c.t <= tEx) {
+            // sound: each gap crossing = one RF kick. Pitch climbs with the crossing count (energy grows by qU
+            // each time) — in tune, a steady rising tick-tock; detuned, the kicks turn into brakes (dE < 0: low tick)
+            val pan = (world(lx(c.x), 0f, 0f).x / 0.9f).coerceIn(-1f, 1f)
+            if (c.dE >= 0) Sfx.play(Sfx.TICK, 0.25f, 0.8f + 0.8f * i / n, pan)
+            else Sfx.play(Sfx.TICK, 0.18f, 0.55f, pan)
+        }
+        // sound: the bunch is extracted at the rim and flies to the target
+        if (soundTau < tEx && tau >= tEx) Sfx.play(Sfx.WHOOSH, 0.45f, 1.2f, (world(target.pos.x, 0f, 0f).x / 0.9f).coerceIn(-1f, 1f))
+        soundTau = tau
     }
 
     private fun halfTurnNs(i: Int): Double {

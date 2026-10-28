@@ -41,6 +41,7 @@ import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
 import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
+import com.bytedance.physicslab.solar.lab.Sfx
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
 import com.bytedance.physicslab.solar.lab.tr
@@ -386,10 +387,21 @@ object PrismDemo : SpecDemo() {
         val target = Math.toRadians(dIncDeg.toDouble())
         val k = if (dt == 0f) 1.0 else 1 - exp(-dt * 8.0)
         var moving = false
-        if (abs(incCur - target) > 1e-6) { incCur += (target - incCur) * k; if (abs(incCur - target) < 1e-5) incCur = target; moving = true }
+        if (abs(incCur - target) > 1e-6) {
+            incCur += (target - incCur) * k
+            if (abs(incCur - target) < 1e-5) {
+                incCur = target
+                // sound: a soft detent TICK when the turning prism settles exactly at minimum deviation
+                if (dt > 0f && target == 0.0) Sfx.play(Sfx.TICK, 0.35f, 1f, C1[0].toFloat() / 0.9f)
+            }
+            moving = true
+        }
         val r1T = if (crucis) R1_CRUCIS else R1_SINGLE
         if (abs(r1 - r1T) > 1e-6) { r1 += (r1T - r1) * k; if (abs(r1 - r1T) < 1e-5) r1 = r1T; moving = true }
+        val tir0 = tirCount
         if (dirty || moving || armMoving) { trace(dt); updateChart(); dirty = false }
+        // sound: a thin glassy ring as the first colours get trapped by total internal reflection (violet end vanishes)
+        if (dt > 0f && tir0 == 0 && tirCount > 0) Sfx.play(Sfx.GLASS, 0.3f, 0.8f, C1[0].toFloat() / 0.9f)
         updateReadout(); updateLabels()
     }
 
@@ -956,7 +968,11 @@ object PrismDemo : SpecDemo() {
         }
     }
 
-    fun applyGlass(i: Int) { glassIdx = i; dirty = true; p1Glass.setMat(glassMat(i)); p2Glass.setMat(glassMat(i)) }
+    fun applyGlass(i: Int) {
+        // sound: a glass prism of a different glass is set on the table
+        if (i != glassIdx) Sfx.play(Sfx.GLASS, 0.4f, 1f + 0.1f * i, C1[0].toFloat() / 0.9f)
+        glassIdx = i; dirty = true; p1Glass.setMat(glassMat(i)); p2Glass.setMat(glassMat(i))
+    }
     fun applyInc(deg: Float) { dIncDeg = deg.coerceIn(-12f, 20f) }
     fun applyCrucis(on: Boolean) { crucis = on; dirty = true }
     fun applySel(i: Int) { selIdx = i; dirty = true }

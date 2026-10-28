@@ -41,6 +41,7 @@ import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
 import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
+import com.bytedance.physicslab.solar.lab.Sfx
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
 import com.bytedance.physicslab.solar.lab.tr
@@ -415,8 +416,18 @@ object FaradayDemo : SpecDemo() {
             val p = program(t); x = p[0]; v = p[1]
         }
         emf = ind.emfN(turns, x, v, pole)
+        val cur0 = cur; val th0 = galvo.theta; val om0 = galvo.omega
         cur = emf / rTot
         galvo.step(cur, dt.toDouble())
+        if (edit && dt > 0f) {
+            val pan = (G.x / 0.9f).coerceIn(-1f, 1f)
+            // sound: an induced-current pulse starts (|I| rises past 30 % of full scale) — a TICK, higher for
+            // + (push in) than − (pull out), so 来拒去留's two opposite kicks sound different
+            if (abs(cur0) < 0.3 * I_FS && abs(cur) >= 0.3 * I_FS) Sfx.play(Sfx.TICK, 0.3f, if (cur > 0) 1.3f else 0.85f, pan)
+            // sound: the needle slams into its end stop (moved too fast / too many turns) — a small clack ∝ impact speed
+            if (abs(th0) < galvo.stopRad && abs(galvo.theta) >= galvo.stopRad && abs(om0) > 0.8)
+                Sfx.play(Sfx.CLACK, (0.1f + 0.4f * (abs(om0) / 8.0).coerceAtMost(1.0).toFloat()), 1.8f, pan)
+        }
         if (cur > iMax) iMax = cur
         if (cur < iMin) iMin = cur
         if (mode == 0 && abs(cur) > autoPeak) autoPeak = abs(cur)

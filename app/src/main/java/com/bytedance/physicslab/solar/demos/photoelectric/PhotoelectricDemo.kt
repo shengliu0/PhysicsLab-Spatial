@@ -39,6 +39,7 @@ import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
 import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
+import com.bytedance.physicslab.solar.lab.Sfx
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
 import com.bytedance.physicslab.solar.lab.tr
@@ -330,6 +331,9 @@ object PhotoelectricDemo : SpecDemo() {
                 val slot = el.indexOfFirst { !it.alive }
                 if (slot < 0) break
                 el[slot].apply { alive = true; s = Photoelectron.sample(emitted++ % 4096, tube.spotRatio); this.e = e * s!!.u; age = 0f; passed = false }
+                // sound: one electron knocked out of the cathode — a quiet TICK. Brightness sets how OFTEN it
+                // ticks, the colour (its kinetic energy) sets the pitch; below threshold: silence, however bright
+                if (dt > 0f) Sfx.play(Sfx.TICK, 0.15f, (0.7f + 0.6f * sqrt((el[slot].e / 3.0).toFloat())).coerceIn(0.6f, 1.7f), KX / 0.9f)
             }
         }
         val a = kv * kv * voltage / (2 * D)                         // display acceleration along +x

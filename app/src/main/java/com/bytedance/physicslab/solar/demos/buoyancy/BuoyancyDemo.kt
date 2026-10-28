@@ -32,6 +32,7 @@ import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
 import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
+import com.bytedance.physicslab.solar.lab.Sfx
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
 import com.bytedance.physicslab.solar.lab.tr
@@ -281,9 +282,20 @@ object BuoyancyDemo : SpecDemo() {
     // ---------------------------------------------------------------- per frame
 
     override fun update(dt: Float) {
+        val depth0 = rig.depth; val balanced0 = balanced()
         rig.step(dt.toDouble() * SPEEDS[speedIdx])
         val still = abs(rig.v) < 2e-3 && rig.q < 2e-6 && abs(rig.hook - rig.hookTarget) < 1e-5
         settledFor = if (still) settledFor + dt else 0.0
+        // sound: a soft low plop as the cube's bottom first touches the liquid
+        if (depth0 <= 0.0 && rig.depth > 0.0) Sfx.play(Sfx.THUD, 0.35f, 1.5f, TX / 0.9f)
+        // sound: water trickling out of the spout — FIZZ re-triggered ~1/s while it flows, gain ∝ outflow rate
+        fizzWait -= dt
+        if (rig.q > 2e-6 && fizzWait <= 0f) {
+            fizzWait = 1f
+            Sfx.play(Sfx.FIZZ, (0.12f + 0.3f * (rig.q / (A * A * 0.08)).toFloat()).coerceAtMost(0.4f), 1.2f, BX / 0.9f)
+        }
+        // sound: CHIME the moment the books balance (G − F示 = F浮 = G排 both light up) with the cube in the liquid
+        if (!balanced0 && balanced() && rig.depth > 0.0) Sfx.play(Sfx.CHIME, 0.5f, 1f, 0.48f / 0.9f)
         place()
         updateReadout()
         updateLabels()
@@ -364,6 +376,14 @@ object BuoyancyDemo : SpecDemo() {
     }
 
     private fun barK() = BAR_W / rig.weight.toFloat()
+
+    private var fizzWait = 0f
+    /** Both "=" glyphs lit: settled and the bookkeeping closes (same test as place()). */
+    private fun balanced(): Boolean {
+        if (settledFor <= 0.6) return false
+        val v = forces()
+        return abs(v[0] - v[1] - v[2]) < 0.03 && abs(v[2] - v[3]) < 0.03 * maxOf(1.0, v[2])
+    }
 
     private var lastHookY = Float.NaN
     private var lastTop = Float.NaN

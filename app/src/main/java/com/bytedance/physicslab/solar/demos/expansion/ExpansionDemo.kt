@@ -35,6 +35,7 @@ import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
 import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
+import com.bytedance.physicslab.solar.lab.Sfx
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
 import com.bytedance.physicslab.solar.lab.Lang
@@ -335,8 +336,30 @@ object ExpansionDemo : SpecDemo() {
         // safety cut-offs (aluminium would melt in the flame: equilibrium 939 °C > 660 °C)
         if (burnerOn && br.tBall >= 273.15 + metal.heatTargetC) burnerOn = false
         if (lampOn && br.tRing >= 273.15 + 600.0) lampOn = false
+        val resting0 = resting; val throughs0 = throughs; val burner0 = burnerOn
         runCommands(dt)
+        eventSounds(dt, resting0, throughs0, burner0)
         sync(dt)
+    }
+
+    private var fizzWait = 0f
+    private fun eventSounds(dt: Float, resting0: Int, throughs0: Int, burner0: Boolean) {
+        if (dt <= 0f) return
+        val pan = wandPos.x / 0.9f
+        // sound: the swollen ball lands on the ring's rim and sticks — a metallic clack
+        if (resting0 == 0 && resting != 0) Sfx.play(Sfx.CLACK, 0.55f, 1.25f, pan)
+        // sound: it has shrunk (or the ring grew) just enough — it slips free with a small pop
+        if (resting0 != 0 && resting == 0) Sfx.play(Sfx.POP, 0.5f, 1f, pan)
+        // sound: the ball's centre drops down through the ring
+        if (throughs > throughs0) Sfx.play(Sfx.WHOOSH, 0.3f, 1.4f, pan)
+        // sound: the Bunsen burner lights (a low whoosh)
+        if (!burner0 && burnerOn) Sfx.play(Sfx.WHOOSH, 0.4f, 0.7f, FLAME.x / 0.9f)
+        // sound: a hot ball in the water hisses — FIZZ ~1/s while it is above 100 °C, louder the hotter it is
+        fizzWait -= dt
+        if (br.quench && br.tBall > 373.15 && fizzWait <= 0f) {
+            fizzWait = 1f
+            Sfx.play(Sfx.FIZZ, (0.15f + 0.4f * ((br.tBall - 373.15) / 500.0).toFloat()).coerceAtMost(0.55f), 1f, BEAKER.x / 0.9f)
+        }
     }
 
     private fun runCommands(dt: Float) {

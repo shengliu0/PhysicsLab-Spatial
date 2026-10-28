@@ -16,6 +16,7 @@ import com.bytedance.physicslab.solar.core.comet.CometSim
 import com.bytedance.physicslab.solar.core.comet.CometThrow
 import com.bytedance.physicslab.solar.core.comet.HandTracker
 import com.bytedance.physicslab.solar.lab.Q
+import com.bytedance.physicslab.solar.lab.Sfx
 import com.bytedance.physicslab.solar.lab.spec.Blend
 import com.bytedance.physicslab.solar.lab.spec.LabelSpec
 import com.bytedance.physicslab.solar.lab.spec.Mat
@@ -150,6 +151,8 @@ class CometSandbox(private val model: SolarModel, private val frame: Frame, var 
         val d = frame.dirToSun(P3(v[0].toFloat(), v[1].toFloat(), v[2].toFloat()))
         val k = CometThrow.launchFactor(speed)
         c.launch(mu, k, d.x.toDouble(), d.y.toDouble(), d.z.toDouble())
+        // sound: the comet leaves your hand — a whoosh, higher for a harder throw (launch factor k)
+        Sfx.play(Sfx.WHOOSH, 0.5f, (0.8f + 0.4f * k.toFloat()).coerceIn(0.7f, 1.6f), panOf(c))
         describe(c, speed, k)
     }
 
@@ -158,6 +161,8 @@ class CometSandbox(private val model: SolarModel, private val frame: Frame, var 
         val s = spawn(ICON_POS) ?: return
         val c = s.comet ?: return
         c.launch(mu, 1.0, 0.0, 0.0, 0.0)          // zero direction -> prograde tangent
+        // sound: a comet launched from the icon (circular speed)
+        Sfx.play(Sfx.WHOOSH, 0.45f, 1.2f, panOf(c))
         describe(c, 1.0, 1.0)
     }
 
@@ -171,6 +176,9 @@ class CometSandbox(private val model: SolarModel, private val frame: Frame, var 
         s.root.visible = true
         return s
     }
+
+    /** Stereo pan from the comet's position in the volume. */
+    private fun panOf(c: Comet) = (frame.toVolume(P3(c.x.toFloat(), c.y.toFloat(), c.z.toFloat())).x / 0.9f).coerceIn(-1f, 1f)
 
     private fun describe(c: Comet, handSpeed: Double, k: Double) {
         val (a, e) = c.elements(mu)
@@ -206,6 +214,9 @@ class CometSandbox(private val model: SolarModel, private val frame: Frame, var 
             if (c.alive) CometSim.step(c, mu, days, model.sunRadius * 1.05, ESCAPE_R)
             if (!c.alive && s.flash <= 0f && s.root.visible && c.fate.isNotEmpty()) {
                 s.flash = 0.6f
+                // sound: the comet's end — a deep thud as it falls into the Sun, a fading high whoosh as it escapes
+                if (c.fate == "sun") Sfx.play(Sfx.THUD, 0.6f, 0.7f, panOf(c))
+                else Sfx.play(Sfx.WHOOSH, 0.25f, 1.7f, panOf(c))
                 if (c.fate == "sun") lastInfo = tr("彗星撞进了太阳（近日点小于太阳半径）", "The comet fell into the Sun (perihelion inside it)")
             }
             if (s.flash > 0f) {

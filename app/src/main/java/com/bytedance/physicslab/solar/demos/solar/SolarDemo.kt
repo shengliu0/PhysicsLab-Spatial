@@ -38,6 +38,7 @@ import com.bytedance.physicslab.solar.lab.BakeCache
 import com.bytedance.physicslab.solar.lab.About
 import com.bytedance.physicslab.solar.lab.Bi
 import com.bytedance.physicslab.solar.lab.Challenge
+import com.bytedance.physicslab.solar.lab.Sfx
 import com.bytedance.physicslab.solar.lab.Lesson
 import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
@@ -354,7 +355,11 @@ object SolarDemo : SpecDemo() {
         when (mode) {
             Mode.ORBITS -> { m.step(dt.toDouble()); updateOrbits(dt) }
             Mode.EARTH_MOON -> {
+                val jd0 = m.jd
                 m.step(dt.toDouble())
+                // sound: CHIME at greatest eclipse — Sun, Earth and Moon in line (the playback loop wraps backwards,
+                // so only a forward pass through the instant counts)
+                lockEvent?.let { ev -> if (dt > 0f && jd0 < ev.jd && m.jd >= ev.jd) Sfx.play(Sfx.CHIME, 0.6f, if (ev.solar) 1.2f else 0.9f, 0f) }
                 lockEvent?.let { ev ->
                     val w = LOCK_WINDOW_H / 24.0
                     if (m.jd > ev.jd + w) m.jd = ev.jd - w

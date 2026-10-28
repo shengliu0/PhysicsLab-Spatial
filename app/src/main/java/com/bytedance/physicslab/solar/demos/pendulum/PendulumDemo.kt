@@ -32,6 +32,7 @@ import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
 import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
+import com.bytedance.physicslab.solar.lab.Sfx
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
 import com.bytedance.physicslab.solar.lab.tr
@@ -220,9 +221,16 @@ object PendulumDemo : SpecDemo() {
 
     override fun update(dt: Float) {
         val sdt = dt * SPEEDS[speedIdx]
+        val tPrev = t
         t += sdt
         for (i in 0 until 3) {
             val th = Pendulum.angle(Math.toRadians(amp[i]), len[i], g, t)
+            // sound: a soft escapement TICK as each bob passes the bottom (theta changes sign). In step, A and B
+            // tick as one (merged); in large-angle mode the two ticks audibly drift apart — isochronism by ear
+            if (sdt > 0f && tPrev > 0.0) {
+                val th0 = Pendulum.angle(Math.toRadians(amp[i]), len[i], g, tPrev)
+                if ((th0 < 0.0) != (th < 0.0)) Sfx.play(Sfx.TICK, 0.22f, if (i == 2) 0.8f else 1.1f, pivotX[i] / 0.9f)
+            }
             swings[i].rot = Q.axisAngle(0f, 0f, 1f, th.toFloat())
             val r = 0.115f
             beads[i]!!.pos = P3(pivotX[i] + r * sin(th).toFloat(), PIVOT_Y - r * cos(th).toFloat(), -0.026f)
@@ -241,6 +249,9 @@ object PendulumDemo : SpecDemo() {
 
         waveRoot.visible = showWave
         if (showWave) {
+            // sound: CHIME when the 15-bob wave realigns into one line (every window, rescaled by g)
+            val window = WAVE_WINDOW * kotlin.math.sqrt(9.81 / g)
+            if (sdt > 0f && tPrev > 0.0 && kotlin.math.floor(t / window) > kotlin.math.floor(tPrev / window)) Sfx.play(Sfx.CHIME, 0.5f, 1f, WAVE_X / 0.9f)
             val a = Math.toRadians(WAVE_AMP)
             for (n in 0 until WAVE_N) waveSwings[n].rot = Q.axisAngle(0f, 0f, 1f, Pendulum.angle(a, waveLen[n], g, t).toFloat())
         }

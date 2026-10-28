@@ -35,6 +35,7 @@ import com.bytedance.physicslab.solar.lab.Lang
 import com.bytedance.physicslab.solar.lab.Lesson
 import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
+import com.bytedance.physicslab.solar.lab.Sfx
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
 import com.bytedance.physicslab.solar.lab.tr
@@ -106,7 +107,7 @@ object GasDemo : SpecDemo() {
     var speedIdx by mutableIntStateOf(1)
 
     // ---------------------------------------------------------------- state
-    private val gas = HardSphereGas(CAP, 2.0 * R, 1872L)
+    internal val gas = HardSphereGas(CAP, 2.0 * R, 1872L)
     private val vMaxScreen get() = V_MAX_REAL / GasScale.speedToReal
     private val pRef get() = GasScale.pRef(150, LX.toDouble() * 2 * HY * 2 * HZ)
     private var pEma = 0.0
@@ -322,7 +323,9 @@ object GasDemo : SpecDemo() {
         val want = N_CHOICES[nIdx]
         if (want != gas.n) { gas.setCount(want, gas.temperature().takeIf { it > 0 } ?: gas.wallT); band.fill(-1) }
         if (s <= 0) return
+        for (i in 0 until gas.n) { pvx[i] = gas.vx[i]; pvy[i] = gas.vy[i]; pvz[i] = gas.vz[i] }
         gas.step(s)
+        wallSounds(countWallHits(s))
         val p = gas.takePressure()
         val a = 1 - exp(-s / 1.5)
         pEma += a * (p - pEma)
@@ -338,6 +341,45 @@ object GasDemo : SpecDemo() {
             System.arraycopy(trail, 3, trail, 0, (TRAIL_N - 1) * 3)
             trail[(TRAIL_N - 1) * 3] = gas.x[0].toFloat(); trail[(TRAIL_N - 1) * 3 + 1] = gas.y[0].toFloat(); trail[(TRAIL_N - 1) * 3 + 2] = gas.z[0].toFloat()
         }
+    }
+
+    // ---------------------------------------------------------------- sound: pressure you can hear
+    private val pvx = DoubleArray(CAP); private val pvy = DoubleArray(CAP); private val pvz = DoubleArray(CAP)
+    /** Wall hits counted since the build (all six faces, piston and heater included). */
+    internal var wallHits = 0L; private set
+    private var hitAcc = 0.0
+    private var lastHitX = 0.0
+    /** Wall hits per audible tick: ~8 ticks/s at the reference state (150 balls, full V, 300 K, ×0.5;
+     *  measured 236 hits/s on the full box, kinetic theory ¼(N/V)<v>A = 229). */
+    internal const val HITS_PER_TICK = 15.0
+    /** Wall area of the full box: hits are scaled to it so the tick rate tracks hits PER AREA = pressure / √T. */
+    private val areaRef get() = 2.0 * ((2 * HY) * (2 * HZ) + LX * (2 * HZ) + LX * (2 * HY))
+
+    /** A wall hit = a velocity component that reversed while the molecule sits within one step of that wall. */
+    internal fun countWallHits(s: Double): Int {
+        var hits = 0
+        val u = abs(gas.pistonU)
+        for (i in 0 until gas.n) {
+            if ((pvx[i] < 0) != (gas.vx[i] < 0)) {
+                val band = (abs(pvx[i]) + abs(gas.vx[i]) + u) * s + 1e-9
+                if (gas.x[i] - gas.xLo <= band || gas.xHi - gas.x[i] <= band) { hits++; lastHitX = gas.x[i] }
+            }
+            if ((pvy[i] < 0) != (gas.vy[i] < 0) && gas.hy - abs(gas.y[i]) <= (abs(pvy[i]) + abs(gas.vy[i])) * s + 1e-9) { hits++; lastHitX = gas.x[i] }
+            if ((pvz[i] < 0) != (gas.vz[i] < 0) && gas.hz - abs(gas.z[i]) <= (abs(pvz[i]) + abs(gas.vz[i])) * s + 1e-9) { hits++; lastHitX = gas.x[i] }
+        }
+        wallHits += hits
+        return hits
+    }
+
+    /** sound: a soft TICK for every HITS_PER_TICK wall hits (per reference area), so the tick RATE is the
+     *  collision rate per unit wall area ∝ pressure (halve V → twice as busy: Boyle by ear); hotter gas = harder hits = slightly louder and brighter. */
+    private fun wallSounds(hits: Int) {
+        hitAcc += hits * areaRef / gas.wallArea
+        if (hitAcc < HITS_PER_TICK) return
+        hitAcc %= HITS_PER_TICK
+        val tr = (tSetK / 300f).coerceIn(0.3f, 4f)
+        Sfx.play(Sfx.TICK, (0.13f * kotlin.math.sqrt(kotlin.math.sqrt(tr))).coerceAtMost(0.22f),
+            (0.9f * kotlin.math.sqrt(kotlin.math.sqrt(tr))).coerceIn(0.6f, 1.4f), (lastHitX / 0.9).toFloat().coerceIn(-1f, 1f))
     }
 
     private fun sync() {

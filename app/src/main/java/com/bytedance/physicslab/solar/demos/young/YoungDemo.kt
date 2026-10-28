@@ -43,6 +43,7 @@ import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
 import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
+import com.bytedance.physicslab.solar.lab.Sfx
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
 import com.bytedance.physicslab.solar.lab.tr
@@ -358,7 +359,11 @@ object YoungDemo : SpecDemo() {
         // ease the screen toward its target distance (visibly slides along the rail)
         if (abs(lCur - lTarget) > 1e-4f) {
             lCur += (lTarget - lCur) * (1f - exp(-dt * 6f)).coerceAtLeast(if (dt == 0f) 0f else 0.02f)
-            if (abs(lCur - lTarget) < 5e-4f) lCur = lTarget
+            if (abs(lCur - lTarget) < 5e-4f) {
+                lCur = lTarget
+                // sound: the screen carriage comes to rest on the rail at its new distance L
+                if (dt > 0f) Sfx.play(Sfx.THUD, 0.25f, 1.3f, 0.2f)
+            }
             dirty = true
         }
         if (dirty) { rebuildOptics(); dirty = false }
@@ -366,7 +371,10 @@ object YoungDemo : SpecDemo() {
         for (k in 0..1) {
             val cov = if (k == 0) coverTop else coverBot
             val target = if (cov) (if (k == 0) 1f else -1f) * dModel() / 2 else (if (k == 0) TAB_PARK else -TAB_PARK)
+            val far0 = abs(target - tabY[k]) > 1e-3f
             tabY[k] += (target - tabY[k]) * if (dt == 0f) 1f else (1f - exp(-dt * 10f))
+            // sound: the brass tab seats over (or parks off) its slit — a small metallic clack
+            if (dt > 0f && far0 && abs(target - tabY[k]) <= 1e-3f) Sfx.play(Sfx.CLACK, 0.3f, 1.6f, -0.15f)
             tabs[k].pos = P3(XB - 0.016f, tabY[k], 0.008f)
         }
         rippleAcc += dt

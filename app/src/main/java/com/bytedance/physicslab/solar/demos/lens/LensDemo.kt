@@ -42,6 +42,7 @@ import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
 import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
+import com.bytedance.physicslab.solar.lab.Sfx
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
 import com.bytedance.physicslab.solar.lab.tr
@@ -376,7 +377,10 @@ object LensDemo : SpecDemo() {
         flicker(flame, 0f, 0.26f)
         if (ghost.visible) flicker(ghostFlame, 1.3f, 0.10f)
         val key = doubleArrayOf(uCur, sCur, fIdx.toDouble(), if (showRays) 1.0 else 0.0, if (showVirtual) 1.0 else 0.0)
+        val sharp0 = sharp
         if (!key.contentEquals(laid)) { layout(); laid = key }
+        // sound: POP as the image on the screen snaps into focus (blur circle drops below 1 mm)
+        if (dt > 0f && !sharp0 && sharp) Sfx.play(Sfx.POP, 0.55f, 1f, 0.25f)
         updateReadout(); updateLabels()
     }
 
@@ -844,7 +848,11 @@ object LensDemo : SpecDemo() {
         dragging = null
         when (name) {
             // magnetic detents at f and 2f: the special cases can be hit by hand
-            "Candle" -> for (m in doubleArrayOf(f, 2 * f)) if (abs(uT - m) < 0.6) uT = m
+            "Candle" -> for (m in doubleArrayOf(f, 2 * f)) if (abs(uT - m) < 0.6) {
+                uT = m
+                // sound: the candle holder clicks into the F / 2F detent on the rail
+                Sfx.play(Sfx.TICK, 0.35f, 0.9f, -0.25f)
+            }
             // released close to focus: snap into it (blur < 2.5 mm), the "click" of finding the image
             "Screen" -> {
                 val v = ThinLens.imageDistance(uT, f)
@@ -855,7 +863,11 @@ object LensDemo : SpecDemo() {
 
     // ---------------------------------------------------------------- actions (panel + taps)
 
-    fun applyF(k: Int) { fIdx = k }
+    fun applyF(k: Int) {
+        // sound: a different glass lens is dropped into the holder
+        if (k != fIdx) Sfx.play(Sfx.GLASS, 0.35f, 0.9f + 0.15f * k, 0f)
+        fIdx = k
+    }
 
     fun setCase(c: Case) {
         uT = ThinLens.presetU(c, f, U_MAX, V_FIT).coerceIn(U_MIN, U_MAX)

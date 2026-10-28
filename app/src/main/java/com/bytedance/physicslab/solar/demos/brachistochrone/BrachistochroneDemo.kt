@@ -40,6 +40,7 @@ import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
 import com.bytedance.physicslab.solar.lab.LessonStep
 import com.bytedance.physicslab.solar.lab.Q
+import com.bytedance.physicslab.solar.lab.Sfx
 import com.bytedance.physicslab.solar.lab.SpecDemo
 import com.bytedance.physicslab.solar.lab.TapTarget
 import com.bytedance.physicslab.solar.lab.tr
@@ -323,7 +324,9 @@ object BrachistochroneDemo : SpecDemo() {
 
     override fun update(dt: Float) {
         wall += dt
+        val tPrev = t
         t += dt * SPEEDS[speedIdx]
+        if (t > tPrev) arrivalSounds(tPrev)
         if (mode == 0) {
             val tEnd = exact.max()
             if (t >= tEnd) {
@@ -334,6 +337,26 @@ object BrachistochroneDemo : SpecDemo() {
         place()
         updateReadout()
         updateLabels()
+    }
+
+    /** Sounds for the arrivals crossed between [tPrev] and t (sim time; restart() resets t so no false hits). */
+    private fun arrivalSounds(tPrev: Double) {
+        if (mode == 0) {
+            val xFin = (X0 + RUN.toFloat()) / 0.9f
+            for (i in 0 until 4) if (tPrev < exact[i] && t >= exact[i]) {
+                val r = rank(i)
+                // sound: each bead CLACKs into the finish bar in arrival order — the winner loudest and highest,
+                // so "who's first" is heard as well as seen
+                Sfx.play(Sfx.CLACK, if (r == 1) 0.7f else 0.45f, 1.3f - 0.12f * (r - 1), xFin)
+                // sound: CHIME if the bead you guessed is the winner
+                if (r == 1 && pick == i) Sfx.play(Sfx.CHIME, 0.5f, 1f, xFin)
+            }
+        } else {
+            // sound: tautochrone — every bowl's bead reaches the bottom at the same instant (t = T, 3T, 5T…):
+            // four arrivals, ONE click (they merge because they really coincide)
+            val T = bowlT
+            if (floor((t / T + 1) / 2) > floor((tPrev / T + 1) / 2)) Sfx.play(Sfx.CLACK, 0.4f, 1.1f, 0f)
+        }
     }
 
     private val st = DoubleArray(2)
