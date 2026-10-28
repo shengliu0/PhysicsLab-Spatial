@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.bytedance.physicslab.solar.core.P3
 import com.bytedance.physicslab.solar.core.buoyancy.Buoy
 import com.bytedance.physicslab.solar.core.buoyancy.OverflowRig
+import com.bytedance.physicslab.solar.lab.About
 import com.bytedance.physicslab.solar.lab.Bi
 import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
@@ -450,6 +451,26 @@ object BuoyancyDemo : SpecDemo() {
     internal fun selectFluid(k: Int) { fluidIdx = k; lowered = true; reset() }
     private fun settledFresh(obj: Int, fluid: Int = -1) =
         objIdx == obj && (fluid < 0 || fluidIdx == fluid) && lowered && resets > resetsAtStep && settled
+
+    // ---- background card (📖): context for someone who has never thought about why things float
+    override val about = About(listOf(
+        About.Page(
+            Bi("这个实验在做什么？", "What is this experiment?"),
+            Bi("物块挂在弹簧测力计下，放进装满到出水口的溢水杯：测力计读数变小，液体从出水口流进旁边的量杯。右边四根柱子依次是：物体重力 G、测力计读数 F示、浮力 F浮、溢出液体的重力 G排。捏物块可放入或提出，捏量杯把水倒回；面板可换物块（木、冰、尼龙、铝等）和液体（酒精、水、浓盐水）。", "A block on a spring scale is lowered into an overflow can filled to its spout: the scale reading drops and liquid spills into a beaker. The four columns on the right are the block's weight G, the scale reading, the buoyant force, and the weight of the overflow. Pinch the block to lower or lift it, pinch the beaker to pour back; the panel swaps blocks (wood, ice, nylon, aluminium…) and liquids (alcohol, water, brine)."),
+        ),
+        About.Page(
+            Bi("国王的王冠", "The king's crown"),
+            Bi("两千多年前，叙拉古的阿基米德在《论浮体》里写下了浮力的规律。流传更广的是罗马人维特鲁威记下的故事：国王怀疑金匠在王冠里掺了银，又不许把王冠熔掉。据说阿基米德在澡盆里看到水溢出来，想到可以比较王冠和同样重的纯金各挤走多少水——体积不一样，就说明掺了假。故事未必真实，思路却很漂亮。", "Over 2,000 years ago, Archimedes of Syracuse set out the law of buoyancy in On Floating Bodies. A more famous story, told by the Roman writer Vitruvius: the king suspected silver had been mixed into his gold crown, which could not be melted down. Watching his bath overflow, Archimedes saw he could compare the water pushed aside by the crown and by an equal weight of pure gold — a different volume means a fake. Maybe a legend, but a lovely idea."),
+        ),
+        About.Page(
+            Bi("浮力从哪里来？", "Where does buoyancy come from?"),
+            Bi("物体浸进液体，就占了一块液体的位置。想象先把那块液体装进一个看不见的袋子：周围的液体正好把它托住。再把袋里换成铝块——周围的液体分不出来，照样往上托同样大的力。所以浮力 = 排开液体的重力：F浮 = ρ液 g V排。比液体密就下沉；比液体疏就浮起，只沉下 ρ物/ρ液 那么多（木块在水里 60%）。", "A submerged object takes the place of a chunk of liquid. Picture that chunk in an invisible bag: the liquid around it holds it up exactly. Now swap the bag's contents for aluminium — the surrounding liquid can't tell and pushes up just as hard. So buoyancy equals the weight of liquid displaced: F = ρ_liquid g V. Denser than the liquid, it sinks; less dense, it floats with only ρ_obj/ρ_liquid under (60% for wood in water)."),
+        ),
+        About.Page(
+            Bi("今天在哪里？", "Where is it today?"),
+            Bi("几十万吨的钢铁巨轮能浮起来，是因为船身是空的，挤走的水足够重。潜水艇往水舱里灌水或排水来下潜、上浮，鱼用鱼鳔做同样的事。热气球是在“空气的海洋”里受浮力。人在死海里能躺着漂，因为盐水更密。冰山只露出约一成：冰的密度大约是海水的九成。", "A steel ship of hundreds of thousands of tonnes floats because its hull is hollow and pushes aside enough water. Submarines flood or empty ballast tanks to dive or rise; fish do the same with a swim bladder. A hot-air balloon floats in an ocean of air. You can lie back in the Dead Sea because brine is denser. And only about a tenth of an iceberg shows: ice is roughly 90% as dense as seawater."),
+        ),
+    ))
 
     override val lesson: Lesson by lazy {
         Lesson(

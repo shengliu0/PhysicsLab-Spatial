@@ -35,6 +35,7 @@ import com.bytedance.physicslab.solar.core.Sky
 import com.bytedance.physicslab.solar.core.Solar
 import com.bytedance.physicslab.solar.core.SolarModel
 import com.bytedance.physicslab.solar.lab.BakeCache
+import com.bytedance.physicslab.solar.lab.About
 import com.bytedance.physicslab.solar.lab.Bi
 import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
@@ -615,6 +616,26 @@ object SolarDemo : SpecDemo() {
 
     // ---- guided track. Key insight: phases are geometry (which part of the always-half-lit Moon faces us), and
     // eclipses are rare because the Moon's orbit is tilted 5.1° — only full/new moons near a node line up.
+    // ---- background card (📖): context for someone who has never thought about how planets move
+    override val about = About(listOf(
+        About.Page(
+            Bi("这个实验在做什么？", "What is this experiment?"),
+            Bi("这是按真实轨道数据运行的太阳系，面板上有四种模式。「轨道」：八大行星绕太阳转，捏一颗行星会出现它的开普勒数据卡，捏 ☄ 还能甩出一颗彗星。「地月」：看月相，跳到真实的日食、月食。「真实比例」：大小和距离用同一把尺。「大小对比」：太阳和行星按真实大小排成一排。", "A solar system running on real orbital data, with four modes on the panel. “Orbits”: the eight planets circle the Sun — pinch one for its Kepler card, or pinch ☄ to throw a comet. “Earth–Moon”: the Moon's phases, and jumps to real eclipses. “To scale”: sizes and distances on one ruler. “Size lineup”: the Sun and planets side by side at true size."),
+        ),
+        About.Page(
+            Bi("从圆到椭圆", "From circles to ellipses"),
+            Bi("两千年来，人们相信天体走的是完美的圆。1543 年哥白尼把太阳放到中心，却仍然用圆，预测总有偏差。第谷用肉眼把火星的位置记了二十多年；开普勒接过这些数据反复计算，1609 年发现火星走的是椭圆，1619 年又找到周期和距离的关系。1687 年，牛顿用万有引力解释了这三条定律。", "For two thousand years, heavenly bodies were thought to move in perfect circles. In 1543 Copernicus put the Sun at the centre but kept the circles, and predictions still drifted. Tycho Brahe charted Mars by eye for over twenty years. Kepler worked through his data and in 1609 found that Mars moves on an ellipse; in 1619 he linked period to distance. In 1687 Newton showed that gravity explains all three laws."),
+        ),
+        About.Page(
+            Bi("开普勒三定律", "Kepler's three laws"),
+            Bi("① 行星绕太阳走椭圆，太阳在椭圆的一个焦点上。② 离太阳近时走得快，远时走得慢：行星和太阳的连线，相同时间扫过相同面积——就像花样滑冰转圈，手臂一收就转得更快。③ 周期 T（年）的平方除以平均距离 a（AU）的立方，对每颗行星都一样：T²/a³ ≈ 1。捏任何一颗行星，看卡片上的这个数。", "① Each planet moves on an ellipse with the Sun at one focus. ② It speeds up near the Sun and slows far away: the line to the Sun sweeps equal areas in equal times — like a spinning skater who turns faster with arms pulled in. ③ Period T (years) squared over mean distance a (AU) cubed is the same for every planet: T²/a³ ≈ 1. Pinch any planet and check its card."),
+        ),
+        About.Page(
+            Bi("今天在哪里？", "Where is it today?"),
+            Bi("同样的轨道计算，让人能提前几百年算准日食、月食的时刻——「地月」模式里的食就是这样算出来的。发射火星探测器要等约 26 个月一次的窗口；天文学家用第三定律，从行星的周期和距离称出恒星的质量。再记住一个尺度：如果太阳是 1 米的球，地球只有 9 毫米，在 107 米之外。", "The same orbit maths predicts eclipses centuries ahead, to the minute — that is how the eclipses in “Earth–Moon” are found. Probes to Mars wait for a launch window that opens about every 26 months, and astronomers use the third law to weigh a star from its planet's period and distance. And one sense of scale: if the Sun were a 1 m ball, Earth would be 9 mm across, 107 m away."),
+        ),
+    ))
+
     override val lesson: Lesson by lazy {
         Lesson(
             listOf(

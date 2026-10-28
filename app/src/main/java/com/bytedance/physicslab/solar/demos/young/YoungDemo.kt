@@ -37,6 +37,7 @@ import com.bytedance.physicslab.solar.core.P3
 import com.bytedance.physicslab.solar.core.prism.Spectrum
 import com.bytedance.physicslab.solar.core.young.DoubleSlit
 import com.bytedance.physicslab.solar.demos.prism.OptGeo
+import com.bytedance.physicslab.solar.lab.About
 import com.bytedance.physicslab.solar.lab.Bi
 import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
@@ -539,6 +540,26 @@ object YoungDemo : SpecDemo() {
 
     /** True fringe spacing on the screen (mm), at the screen's current distance. */
     internal fun fringeMm() = DoubleSlit.fringeSpacing(if (white) 550e-9 else lamM(), lCur.toDouble(), dReal()) * 1e3
+
+    // ---- background card (📖): context for someone who has never wondered what light is
+    override val about = About(listOf(
+        About.Page(
+            Bi("这个实验在做什么？", "What is this experiment?"),
+            Bi("灯发出单色光，穿过两条相距不到半毫米的细缝，照到远处的光屏上，屏上出现一排亮暗相间的条纹。真实条纹只隔几毫米，所以横向放大 20 倍来画，读数里的数字都是真实值。上方的波纹图示意两缝的波怎样叠加，捏铜挡片能遮住一条缝。面板可调波长、缝距 d、屏距 L，或换成白光。", "A lamp sends coloured light through two slits less than half a millimetre apart onto a distant screen, which shows a row of bright and dark stripes. Real stripes are millimetres apart, so the view across the beam is drawn 20× wider; the readout numbers are real. Above, a ripple picture shows how the two slits' waves combine; pinch a brass tab to cover a slit. The panel sets wavelength, slit gap d, screen distance L, or white light."),
+        ),
+        About.Page(
+            Bi("光是粒子还是波？", "Is light a particle or a wave?"),
+            Bi("牛顿认为光是一串微小的粒子，他的名望让这个看法占了上风一百年。1801 年前后，英国医生兼物理学家托马斯·杨把一束光分成两路再让它们重叠，看到了亮暗条纹。粒子叠在一起只会更亮，不会变暗；只有波才会互相“抵消”。起初很多人不服，直到菲涅耳等人用波动理论算准了更多现象，光是波才被普遍接受。", "Newton pictured light as a stream of tiny particles, and his fame kept that view on top for a century. Around 1801 Thomas Young, an English physician and physicist, split a beam of light in two and overlapped the halves — and saw bright and dark stripes. Adding particles can only make things brighter, never darker; only waves can cancel. Many resisted until Fresnel and others used wave theory to predict more effects precisely."),
+        ),
+        About.Page(
+            Bi("波峰遇上波谷", "Crest meets trough"),
+            Bi("往池塘里同时丢两颗石子，两圈水波相遇：波峰碰波峰，浪更高；波峰碰波谷，水面反而平了。光也一样：屏上一点到两条缝的路程差是整数个波长，叠成亮纹；差半个波长，抵消成暗纹。条纹间距 Δy = λL/d：波长越长、屏越远、两缝越近，条纹越宽。遮住一条缝，条纹立刻消失——暗纹本来就是两列波在抵消。", "Drop two pebbles in a pond at once: where crest meets crest the water rises higher; where crest meets trough it lies flat. Light does the same: where the paths from the two slits differ by whole wavelengths, it adds into a bright stripe; half a wavelength off, it cancels into a dark one. Spacing Δy = λL/d: longer wavelength, farther screen or closer slits give wider stripes. Cover one slit and the stripes vanish — dark meant two waves cancelling."),
+        ),
+        About.Page(
+            Bi("今天在哪里？", "Where is it today?"),
+            Bi("肥皂泡和油膜上的彩色、光盘背面的彩虹，都来自光波的叠加。激光干涉仪靠条纹的移动测量极小的位移：LIGO 能测出比质子还小得多的长度变化，2015 年第一次探测到引力波。相机镜头上的增透膜，让反射光互相抵消。更奇妙的是：把电子一个一个射向双缝，也会慢慢攒出条纹——这是量子力学的核心实验。", "The colours of soap bubbles and oil films, and the rainbow on a CD, come from light waves adding up. Laser interferometers read moving fringes to measure tiny shifts: LIGO senses changes far smaller than a proton and first detected gravitational waves in 2015. Coatings on camera lenses make reflected light cancel. Strangest of all, electrons sent one at a time through two slits slowly build up stripes too — a core experiment of quantum physics."),
+        ),
+    ))
 
     override val lesson: Lesson by lazy {
         Lesson(

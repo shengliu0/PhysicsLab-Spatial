@@ -28,6 +28,7 @@ import com.bytedance.physicslab.solar.core.P3
 import com.bytedance.physicslab.solar.core.gas.GasScale
 import com.bytedance.physicslab.solar.core.gas.HardSphereGas
 import com.bytedance.physicslab.solar.core.gas.Maxwell
+import com.bytedance.physicslab.solar.lab.About
 import com.bytedance.physicslab.solar.lab.Bi
 import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lang
@@ -455,6 +456,26 @@ object GasDemo : SpecDemo() {
     internal val gaugeAtm get() = pEma / pRef
     internal val thermoK get() = GasScale.kelvin(tEma)
     private val pistonArrived get() = abs(gas.xLo - gas.pistonTarget) < 1e-4
+
+    // ---- background card (📖): context for a viewer who has never met this topic
+    override val about = About(listOf(
+        About.Page(
+            Bi("这个实验在做什么？", "What is this experiment?"),
+            Bi("玻璃箱里的一个个小球就是气体分子，颜色越暖跑得越快。捏左边的活塞手柄把体积压小，捏箱底的加热板升温。顶上的压力表、右边的温度计和速率柱状图会跟着变。按「全部同速」，让所有分子从同一个速度出发，看它们怎样很快乱成一条钟形曲线。", "Each ball in the glass box is a gas molecule; warmer colours mean faster. Pinch the piston handle on the left to squeeze the volume, or the heater under the box to warm it. The pressure gauge on top, the thermometer on the right and the speed histogram all respond. Press “All same speed” to start every molecule at one speed and watch them spread into a bell-shaped curve."),
+        ),
+        About.Page(
+            Bi("气体到底是什么？", "What is a gas, really?"),
+            Bi("气体看不见，却能把轮胎撑得硬邦邦。1662 年玻意耳发现：同样的气体，体积压一半，压强就翻倍。可这是为什么？19 世纪，克劳修斯、麦克斯韦和玻尔兹曼大胆假设：气体是无数乱飞的小分子。麦克斯韦 1860 年算出它们的速度分布；玻尔兹曼 1872 年说明，碰撞总会把速度打乱成这个分布。那时很多人还不相信原子真的存在。", "You can't see a gas, yet it keeps a tyre hard. In 1662 Boyle found that squeezing a gas into half the space doubles its pressure. But why? In the 1800s Clausius, Maxwell and Boltzmann made a bold guess: a gas is countless tiny molecules flying about. Maxwell worked out their spread of speeds in 1860; in 1872 Boltzmann showed collisions always shuffle speeds into that spread. Many still doubted atoms existed."),
+        ),
+        About.Page(
+            Bi("压强就是分子撞墙", "Pressure is molecules hitting walls"),
+            Bi("压强不是神秘的力，就是分子不停地撞墙。想象冰雹砸在铁皮屋顶上：雹子越密、砸得越狠，屋顶受的力越大。体积减半，同样的分子撞墙次数翻倍，压强就翻倍。温度量的是分子平均有多“活跃”：绝对温度翻倍，速度只快约 1.4 倍，但撞得又狠又勤，压强照样翻倍。", "Pressure is no mysterious force: it is molecules hitting the walls, nonstop. Think of hail on a tin roof — the denser and harder the hail, the harder the roof is pushed. Halve the volume and the same molecules hit the walls twice as often: double the pressure. Temperature measures how lively they are: double the absolute temperature and they go only ~1.4× faster, but hit harder AND more often — pressure doubles again."),
+        ),
+        About.Page(
+            Bi("今天它在哪里？", "Where is it today?"),
+            Bi("冬天早上车胎压强偏低，开一会儿轮胎变热就回来了。高压锅、打气筒、汽车发动机里的燃气推活塞，都是同一条 pV = NkT。室温下空气分子平均每秒跑约 470 米，比声速还快——只是它们每秒要相撞几十亿次，所以气味要好几秒才飘过房间。", "On a cold morning tyre pressure reads low; after a drive the warm tyre recovers. A pressure cooker, a bike pump, burning gas pushing an engine piston: all the same pV = NkT. At room temperature air molecules average about 470 m/s, faster than sound — but each collides billions of times a second, so a smell still takes seconds to cross a room."),
+        ),
+    ))
 
     override val lesson: Lesson by lazy {
         Lesson(

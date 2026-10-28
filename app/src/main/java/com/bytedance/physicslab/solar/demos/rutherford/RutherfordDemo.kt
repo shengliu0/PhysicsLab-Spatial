@@ -36,6 +36,7 @@ import com.bytedance.physicslab.solar.core.rutherford.AlphaCounter
 import com.bytedance.physicslab.solar.core.rutherford.CoulombHyperbola
 import com.bytedance.physicslab.solar.core.rutherford.Rutherford
 import com.bytedance.physicslab.solar.demos.cyclotron.MeshKit
+import com.bytedance.physicslab.solar.lab.About
 import com.bytedance.physicslab.solar.lab.Bi
 import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
@@ -890,6 +891,26 @@ object RutherfordDemo : SpecDemo() {
     private var resetSeen = false
     private var bouncedAtStep = 0L
     private val bounceFraction get() = Rutherford.fractionBeyond(PI / 2, d, nt)
+
+    // ---- background card (📖): context for a viewer who has never met this topic
+    override val about = About(listOf(
+        About.Page(
+            Bi("这个实验在做什么？", "What is this experiment?"),
+            Bi("左边是实验室：铅罩里的 α 源射出一束 α 粒子，打在约 1 μm 厚的金箔上。四周一圈荧光屏，α 打上去就闪一下绿光。捏显微镜转到不同角度计数，下方柱状图和白线理论对比。右边是放大约 2×10¹² 倍的原子核：一条条曲线是 α 的轨迹。捏青色瞄准点改变瞄准距离 b，捏原子核换成汤姆孙模型对比。", "On the left, the lab: a lead-shielded source fires a beam of alpha particles at a gold foil about 1 μm thick. A ring-shaped screen around it flashes green wherever an alpha lands. Pinch the microscope to count at other angles; the histogram below is checked against the white theory line. On the right, a nucleus ×2·10¹², with alpha paths curving round it. Pinch the cyan aim marker to change b, or the nucleus for Thomson's model."),
+        ),
+        About.Page(
+            Bi("正电荷藏在哪？", "Where is the positive charge?"),
+            Bi("1900 年代初，人们已知原子里有带负电的电子，却不知道正电荷在哪。汤姆孙猜它像布丁一样均匀摊开，电子像葡萄干嵌在里面。1909 年，卢瑟福的助手盖革和学生马斯登用 α 粒子射金箔，竟发现极少数被弹了回来。卢瑟福说，这就像炮弹打在纸上却被弹回。1911 年他提出：正电荷集中在原子中心一个极小的核里。", "By 1900 atoms were known to hold negative electrons — but where was the positive charge? Thomson guessed it was spread out like a pudding with electrons as raisins. In 1909 Rutherford's assistant Geiger and student Marsden fired alphas at gold foil and found a very few bounced back. Rutherford likened it to a shell bouncing off tissue paper. In 1911 he proposed the positive charge sits in a tiny central nucleus."),
+        ),
+        About.Page(
+            Bi("原子几乎是空的", "The atom is almost empty"),
+            Bi("如果原子有体育场那么大，原子核只是中央的一粒豌豆，却装着原子几乎全部的质量和全部正电荷。所以大多数 α 粒子从空旷处直接穿过；只有极少数几乎正对着核撞去，被强大的电斥力掉头推回。弹回很罕见，这里约一万多个才有一个；但只要有一个，就说明里面藏着又小又重的核。", "If an atom were the size of a stadium, its nucleus would be a pea in the middle — yet it holds almost all the mass and all the positive charge. So most alphas pass straight through the empty space; only the rare one heading almost straight at a nucleus is turned round by the huge electric push. Bounce-backs are rare, about one in ten-odd thousand here, but even one proves a tiny, heavy nucleus is inside."),
+        ),
+        About.Page(
+            Bi("今天它在哪里？", "Where is it today?"),
+            Bi("原子核的发现打开了核物理的大门：核电站、医院的放疗和同位素诊断都从这里起步。很多烟雾报警器里就有一小片镅-241 α 源。芯片工厂用“卢瑟福背散射”检查薄膜成分：射入离子，看它们怎样弹回。今天的粒子对撞机也是同一个思路——拿粒子去撞，看它们怎样散开，推断里面有什么。", "Finding the nucleus opened the door to nuclear physics: nuclear power, radiotherapy and isotope scans all start here. Many smoke alarms hold a tiny americium-241 alpha source. Chip makers use “Rutherford backscattering” to check thin films: fire ions in, see how they bounce back. Today's particle colliders follow the same idea — smash particles together, watch how they scatter, and work out what is inside."),
+        ),
+    ))
 
     override val lesson: Lesson by lazy {
         Lesson(

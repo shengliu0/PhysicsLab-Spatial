@@ -29,6 +29,7 @@ import com.bytedance.physicslab.solar.core.expansion.BallRing
 import com.bytedance.physicslab.solar.core.expansion.Blackbody
 import com.bytedance.physicslab.solar.core.expansion.Expansion
 import com.bytedance.physicslab.solar.core.expansion.Metals
+import com.bytedance.physicslab.solar.lab.About
 import com.bytedance.physicslab.solar.lab.Bi
 import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
@@ -623,6 +624,26 @@ object ExpansionDemo : SpecDemo() {
     internal val holeUm get() = br.holeD * 1e6
     private var countAtStep = 0
     private var holeAtStep = 0.0
+
+    // ---- background card (📖): context for a viewer who has never met this topic
+    override val about = About(listOf(
+        About.Page(
+            Bi("这个实验在做什么？", "What is this experiment?"),
+            Bi("台上有一个直径 25.4 mm 的铜球和一个圆环，冷的时候球刚好能穿过，只差 50 µm。注视铜球捏合，让它去穿圆环；捏本生灯烧球，捏酒精灯烧环，面板「水冷」把球泡进水里。右边的间隙表显示真实间隙，正数能过、负数卡住。尺寸变化默认放大 20 倍，可关掉看真实比例。", "A 25.4 mm brass ball and a ring it just fits through when cold — only 50 µm to spare. Gaze at the ball and pinch to try the ring; pinch the Bunsen burner to heat the ball, the spirit lamp to heat the ring, or tap “Quench” to dunk the ball in water. The gap meter on the right shows the real clearance: positive passes, negative jams. Size changes are drawn 20× larger; switch that off for true scale."),
+        ),
+        About.Page(
+            Bi("一个老课堂演示", "An old classroom demo"),
+            Bi("1720 年前后，荷兰物理学家斯赫拉弗桑德用这套球和环给学生演示：东西受热会变大。今天听来理所当然，当时却很要紧：温度计靠液体受热膨胀来读数；摆钟的摆杆夏天变长，钟就走慢。工匠必须知道金属到底会胀多少。这套演示后来进了几乎所有的物理课堂。", "Around 1720 the Dutch physicist 's Gravesande used this ball and ring to show students that things grow when heated. Obvious today, it mattered then: thermometers read the swelling of a liquid, and a pendulum clock runs slow in summer because its rod gets longer. Craftsmen needed to know how much metal grows. The demo has been in physics classrooms ever since."),
+        ),
+        About.Page(
+            Bi("原子抖得更凶", "Atoms jiggle harder"),
+            Bi("金属里的原子一直在原地抖动，加热后抖得更凶，彼此要多占一点地方，整块金属就均匀胀大：ΔD = α·D·ΔT。最容易想错的是圆环：孔不会被“挤小”，而是跟着变大——就像把照片整体放大，照片上的洞也一起变大。黄铜烧到 700 °C，直径只多 0.33 mm，却已远大于 50 µm 的间隙。", "Atoms in a metal are always jiggling in place. Heat them and they jiggle harder and need a little more room, so the whole piece grows evenly: ΔD = α·D·ΔT. The trap is the ring: its hole does not get squeezed smaller — it grows, like enlarging a photo, hole and all. Brass at 700 °C is only 0.33 mm wider, but that is far more than the 50 µm gap."),
+        ),
+        About.Page(
+            Bi("今天它在哪里？", "Where is it today?"),
+            Bi("铁轨接头留缝，桥面上有伸缩缝，都是给夏天的膨胀留余地。工厂装齿轮时，常把齿轮加热后套上轴，冷却后就紧紧抱住，这叫热装。老式恒温器里的双金属片，两种金属胀得不一样多，受热就弯，去推开关。拧不开的罐头铁盖，用热水冲一冲就松了，也是这个道理。", "Gaps between rails and the expansion joints in a bridge leave room for summer growth. Factories often heat a gear and slide it onto a shaft; as it cools it grips tight — a shrink fit. In an old thermostat, a bimetal strip of two metals that grow by different amounts bends when warm and flips a switch. A stuck metal lid on a jar loosens under hot water for the same reason."),
+        ),
+    ))
 
     override val lesson: Lesson by lazy {
         Lesson(

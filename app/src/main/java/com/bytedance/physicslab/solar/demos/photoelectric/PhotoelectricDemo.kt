@@ -33,6 +33,7 @@ import com.bytedance.physicslab.solar.core.photoelectric.Photo
 import com.bytedance.physicslab.solar.core.photoelectric.Photoelectron
 import com.bytedance.physicslab.solar.core.photoelectric.PhotoTube
 import com.bytedance.physicslab.solar.demos.cyclotron.MeshKit
+import com.bytedance.physicslab.solar.lab.About
 import com.bytedance.physicslab.solar.lab.Bi
 import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
@@ -433,6 +434,26 @@ object PhotoelectricDemo : SpecDemo() {
     // (3.06 eV) does — brightness only sets HOW MANY; the fastest carry E_k,max = hν − W = 0.78 eV (U_c = 0.78 V).
     private var intensityAtStep = 0f
     private val aliveElectrons get() = el.count { it.alive }
+
+    // ---- background card (📖): context for a viewer who has never met this topic
+    override val about = About(listOf(
+        About.Page(
+            Bi("这个实验在做什么？", "What is this experiment?"),
+            Bi("一只大真空管：左边是金属阴极 K，右边是网状阳极 A。后方的汞灯射来一束光，光子像珠子一样奔向阴极，被打出的电子飞向阳极。可以滑动波长（700 到 200 nm）和光强，捏阴极换金属，调阳极电压 U_AK 让电子减速。右边两张图：最快电子的能量随频率怎样变，电流随电压怎样变。", "A large vacuum tube: metal cathode K on the left, mesh anode A on the right. The lamp at the back sends a beam; photons march like beads to the cathode, and the electrons they knock out fly to the anode. Slide the wavelength (700 to 200 nm) and the intensity, pinch the cathode to change the metal, and set the anode voltage U_AK to slow the electrons. Right: top electron energy vs frequency, and current vs voltage."),
+        ),
+        About.Page(
+            Bi("光是波，还是颗粒？", "Is light a wave or a particle?"),
+            Bi("1887 年，赫兹发现紫外光照在金属上，电火花更容易跳出来。后来勒纳德测到：光再亮，飞出的电子也不会更快；而红光再亮，往往一个电子也打不出。这和“光是波”完全对不上——波越强，应该能量越大。1905 年，爱因斯坦提出光是一份一份的“光子”。密立根起初并不相信，可他 1916 年的精密测量反而证实了它。", "In 1887 Hertz noticed that ultraviolet light on metal makes sparks jump more easily. Later Lenard found that brighter light does not make the electrons faster, and red light, however bright, often frees none at all. That clashed with light as a wave — a stronger wave should carry more energy. In 1905 Einstein proposed light comes in packets: photons. Millikan was doubtful, yet his careful 1916 measurements confirmed it."),
+        ),
+        About.Page(
+            Bi("一份一份地给", "Energy in packets"),
+            Bi("光的能量是一份一份交付的。每份（一个光子）的能量 E = hν 只由颜色决定：紫光大，红光小。一个光子最多打出一个电子，不够的能量也没法攒。就像只收一元硬币的售货机：投一百个一角也不行，投一个一元就出货。所以颜色决定电子飞多快，亮度只决定电子有多少；频率太低，再亮也没用。", "Light delivers energy in packets. Each packet, a photon, carries E = hν, set only by the colour: violet a lot, red a little. One photon frees at most one electron, and photons cannot pool their energy. Like a vending machine that takes only one-yuan coins: a hundred ten-cent coins buy nothing, one coin works. So colour sets how fast electrons fly, brightness only how many; below the threshold frequency, no brightness helps."),
+        ),
+        About.Page(
+            Bi("今天它在哪里？", "Where is it today?"),
+            Bi("手机相机的每个像素，都在把照进来的光子变成电子，再数一数，靠的是光电效应的近亲。太阳能电池把光子变成电流。光电倍增管能数出单个光子，用在医院的 PET 扫描仪和地下的中微子探测器里。路灯的光控开关、烟雾报警器里的光电传感器，也都靠光“打”出电子。爱因斯坦正是因光电效应获得 1921 年诺贝尔奖。", "Every pixel in a phone camera turns incoming photons into electrons and counts them — a close cousin of this effect. Solar cells turn photons into current. Photomultiplier tubes count single photons in hospital PET scanners and underground neutrino detectors. Light-sensing streetlight switches and optical smoke alarms also rely on light freeing electrons. Einstein's Nobel Prize of 1921 was awarded for the photoelectric effect."),
+        ),
+    ))
 
     override val lesson: Lesson by lazy {
         Lesson(

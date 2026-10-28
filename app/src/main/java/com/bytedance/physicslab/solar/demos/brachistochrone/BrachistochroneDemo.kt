@@ -34,6 +34,7 @@ import com.bytedance.physicslab.solar.core.brachistochrone.Cycloid
 import com.bytedance.physicslab.solar.core.brachistochrone.Descent
 import com.bytedance.physicslab.solar.core.brachistochrone.Lanes
 import com.bytedance.physicslab.solar.core.brachistochrone.Track
+import com.bytedance.physicslab.solar.lab.About
 import com.bytedance.physicslab.solar.lab.Bi
 import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
@@ -491,6 +492,26 @@ object BrachistochroneDemo : SpecDemo() {
     private var dropAtStep = 0.0
     private fun raceOver() = mode == 0 && t >= exact.max()
     private fun bowlMeets(): Int { val T = bowlT; return if (mode != 1 || t < T) 0 else 1 + floor((t - T) / (2 * T)).toInt() }
+
+    // ---- background card (📖): context for someone who assumes the straight line is fastest
+    override val about = About(listOf(
+        About.Page(
+            Bi("这个实验在做什么？", "What is this experiment?"),
+            Bi("四根光滑的轨道，起点、终点都相同：摆线、陡降、圆弧、直线，每根上穿着一颗珠子，没有摩擦。先捏你猜最快的那颗珠子，比赛重新开始；频闪光点每 0.1 秒留一颗，数点就是数时间。拖「落差 h」改变终点高度。切到「等时」模式，四颗珠子从不同高度滑进摆线形的碗。", "Four polished rods share one start and one finish: cycloid, cliff, arc and straight line, each threading a frictionless bead. Pinch the bead you think is fastest and the race restarts; strobe dots fall every 0.1 s, so counting dots counts time. Drag “Drop h” to move the finish. Switch to “Tautochrone” and four beads slide into cycloid bowls from different heights."),
+        ),
+        About.Page(
+            Bi("一道公开挑战题", "A public challenge"),
+            Bi("1696 年，约翰·伯努利在期刊上向全欧洲的数学家出了一道题：一颗珠子只靠重力，从一点滑到另一点（不在正下方），走哪条曲线最快？答案出人意料：不是直线。第二年，他本人、他哥哥雅各布、莱布尼茨、牛顿等人都交了答案——摆线。为解这类“找最好的曲线”的问题，后来发展出了一门新数学：变分法。", "In 1696 Johann Bernoulli set a problem for the mathematicians of Europe in a journal: a bead slides under gravity alone from one point to another, not directly below. Which curve is fastest? Surprisingly, not the straight line. The next year answers came from Bernoulli himself, his brother Jakob, Leibniz, Newton and others: the cycloid. Problems like this — find the best curve — grew into new mathematics, the calculus of variations."),
+        ),
+        About.Page(
+            Bi("先俯冲，再赶路", "Dive first, then travel"),
+            Bi("摆线是车轮滚动时，轮缘上一点画出的曲线（打开「滚轮作图」就能看到）。它一开始几乎竖直往下，早早把高度换成速度；路虽然更长，后面却一路都快。就像赶路时先绕几步上快速路，反而比挤近路早到。没有摩擦时，所有珠子到终点的速度都一样，差的只是用时。摆线碗还有个本事：从任何高度松手，到底的时间都一样（惠更斯，1659）。", "A cycloid is the curve traced by a point on a rolling wheel's rim (turn on “Rolling wheel”). It starts almost straight down, turning height into speed early: a longer path, but faster all the way — like taking the motorway instead of the short, slow street. Without friction every bead finishes at the same speed; only the time differs. And in a cycloid bowl, the trip to the bottom takes the same time from any height (Huygens, 1659)."),
+        ),
+        About.Page(
+            Bi("今天在哪里？", "Where is it today?"),
+            Bi("惠更斯把等时曲线用在摆钟上，想让摆幅变化不影响走时。伯努利这道题开创的变分法，今天用来规划火箭入轨、无人机和机器人的运动轨迹，问的都是“哪条路最省时、最省力”。滑梯和过山车常常一开头就很陡，也是“先换来速度”的道理。最值得记住的一句：最短的路，不一定最快。", "Huygens used the tautochrone in pendulum clocks, so the size of the swing would not change the timing. The calculus of variations born from Bernoulli's puzzle now plans rocket ascents and the paths of drones and robots — all asking which route is quickest or cheapest. Slides and roller coasters often start steep for the same reason: get speed early. The line to remember: the shortest path is not always the fastest."),
+        ),
+    ))
 
     override val lesson: Lesson by lazy {
         Lesson(

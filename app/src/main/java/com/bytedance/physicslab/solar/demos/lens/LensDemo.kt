@@ -35,6 +35,7 @@ import com.bytedance.physicslab.solar.core.P3
 import com.bytedance.physicslab.solar.core.lens.ThinLens
 import com.bytedance.physicslab.solar.core.lens.ThinLens.Case
 import com.bytedance.physicslab.solar.demos.prism.OptGeo
+import com.bytedance.physicslab.solar.lab.About
 import com.bytedance.physicslab.solar.lab.BakeCache
 import com.bytedance.physicslab.solar.lab.Bi
 import com.bytedance.physicslab.solar.lab.Challenge
@@ -684,6 +685,26 @@ object LensDemo : SpecDemo() {
     internal fun caseNow() = ThinLens.classify(uCur, f)
     /** Image size / candle size on the screen side (v / u); NaN with no real image. */
     internal fun magAbs() = if (vCm.isInfinite() || vCm <= 0) Double.NaN else vCm / uCur
+
+    // ---- background card (📖): context for a viewer who has never met lenses
+    override val about = About(listOf(
+        About.Page(
+            Bi("这个实验在做什么？", "What is this experiment?"),
+            Bi("一支蜡烛、一片凸透镜、一块光屏。移动蜡烛，看光屏上能不能接到清晰的像，像是放大还是缩小、正立还是倒立。你的眼睛、手机镜头、投影仪、放大镜，都是同一条规律在起作用。", "A candle, a convex lens and a screen. Move the candle and see whether the screen catches a sharp image — bigger or smaller, upright or upside down. Your eye, a phone camera, a projector and a magnifier all run on this one rule."),
+        ),
+        About.Page(
+            Bi("光为什么会拐弯？", "Why does light bend?"),
+            Bi("光在玻璃里走得比在空气里慢（约慢三分之一）。凸透镜中间厚、边缘薄，斜着进入的光会向厚的一侧偏折，于是从一点发出的光被重新聚到另一点 —— 这个点就是“像”。平行光聚到的那一点叫焦点，到透镜的距离叫焦距 f。", "Light is slower in glass than in air (by about a third). A convex lens is thick in the middle and thin at the edge, so rays bend toward the thick part, and light leaving one point is gathered again at another point — the image. Parallel light meets at the focal point; its distance from the lens is the focal length f."),
+        ),
+        About.Page(
+            Bi("一条公式管所有情况", "One formula for every case"),
+            Bi("物距 u、像距 v、焦距 f 满足 1/u + 1/v = 1/f（开普勒 1611 年给出了成像的道理）。蜡烛在 2f 以外：缩小倒立的实像（照相机）；在 f 和 2f 之间：放大倒立的实像（投影仪）；在 f 以内：光屏接不到，透过透镜看到放大正立的虚像（放大镜）。", "Object distance u, image distance v and focal length f obey 1/u + 1/v = 1/f (Kepler explained lens imaging in 1611). Beyond 2f: a smaller, inverted real image (a camera). Between f and 2f: a larger, inverted real image (a projector). Inside f: no image on the screen — look through the lens for an enlarged upright virtual image (a magnifier)."),
+        ),
+        About.Page(
+            Bi("今天它在哪里？", "Where is it today?"),
+            Bi("你眼睛里的晶状体就是一片会变焦的凸透镜：看近处时肌肉把它挤得更厚、焦距更短。近视是像落在视网膜前面，所以戴凹透镜把光稍微“推开”。头显里的镜片、自动对焦的手机镜头，做的都是同一件事：让 1/u + 1/v = 1/f 在你需要的地方成立。", "The lens in your eye is a convex lens that refocuses: for near objects muscles squeeze it thicker, shortening f. Short sight puts the image in front of the retina, so a concave lens spreads the light a little. The lenses in a headset and an autofocus phone camera do the same job: make 1/u + 1/v = 1/f hold where you need it."),
+        ),
+    ))
 
     override val lesson: Lesson by lazy {
         Lesson(

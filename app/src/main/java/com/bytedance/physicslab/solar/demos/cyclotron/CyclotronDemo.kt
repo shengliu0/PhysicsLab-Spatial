@@ -34,6 +34,7 @@ import com.bytedance.physicslab.solar.core.cyclotron.Cyclotron
 import com.bytedance.physicslab.solar.core.cyclotron.Lorentz
 import com.bytedance.physicslab.solar.core.cyclotron.Phys
 import com.bytedance.physicslab.solar.core.cyclotron.Track
+import com.bytedance.physicslab.solar.lab.About
 import com.bytedance.physicslab.solar.lab.Bi
 import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
@@ -515,6 +516,26 @@ object CyclotronDemo : SpecDemo() {
     private fun setTuning(k: Int) { if (detuneIdx != k) { detuneIdx = k; dirty = true } }
     private var thetaAtStep = 0.0
     private var uAtStep = 60f
+
+    // ---- background card (📖): context for a viewer who has never met this topic
+    override val about = About(listOf(
+        About.Page(
+            Bi("这个实验在做什么？", "What is this experiment?"),
+            Bi("两只半圆形的空心铜盒（D 形盒）立在你面前，夹在电磁铁两极之间，磁场指向你。中心的离子源放出质子，它每穿过一次两盒之间的缝，就被交变电压推一把，沿发光的螺旋越转越大，最后从边缘引出。旁边的示波器显示缝隙电压和过缝时刻。面板可调磁场 B、电压 U、射频频率，还能换粒子。", "Two hollow half-moon boxes (the “dees”) stand in front of you between the poles of an electromagnet; the field points at you. The ion source in the centre releases protons. Each time one crosses the gap between the dees, an alternating voltage gives it a kick, so it spirals out along the glowing track and leaves at the rim. A scope beside it shows the gap voltage and crossings. Adjust B, U, the RF or the particle."),
+        ),
+        About.Page(
+            Bi("怎样把粒子推到很快？", "How to make a particle fast?"),
+            Bi("1930 年前后，物理学家想要上百万电子伏的粒子，去撞开原子核看看里面。直接加速就得造几百万伏的高压，非常难。伯克利的劳伦斯想出一个巧办法：用磁场让粒子绕圈，反复经过同一道不太高的电压缝，每次推一点。1932 年，他的机器直径不到 30 厘米，就把质子推到了约 100 万电子伏。他因此获得 1939 年诺贝尔物理学奖。", "Around 1930 physicists wanted million-electron-volt particles to break open nuclei. One big push needs millions of volts — very hard to build. At Berkeley, Lawrence had a clever idea: let a magnet bend the particle into circles so it crosses the same modest voltage gap again and again, a small kick each time. By 1932 a machine under 30 cm wide got protons to about a million eV. He won the 1939 Nobel Prize in Physics."),
+        ),
+        About.Page(
+            Bi("绕一圈，时间不变", "Every lap takes the same time"),
+            Bi("秘密在于一个巧合：在磁场里，粒子绕一圈的时间和它跑多快无关。速度快了，圈也按比例变大，用时不变：T = 2πm/qB。就像旋转木马：外圈的马跑得快，里圈的马跑得慢，但都在同一时间转完一圈。所以电压只要按固定节拍翻转，就能每半圈准时推一把。最终能量只看磁场和半径，与电压高低无关。", "The secret is a lucky fact: in a magnetic field the time for one lap does not depend on speed. Faster means a bigger circle, so the time stays the same: T = 2πm/qB. Like a merry-go-round: outer horses move faster than inner ones, yet all finish a turn together. So a voltage flipping at one steady beat kicks the particle on time every half-turn. The final energy depends only on the field and the radius, not the voltage."),
+        ),
+        About.Page(
+            Bi("今天它在哪里？", "Where is it today?"),
+            Bi("很多大医院里就有一台小型回旋加速器，现场生产 PET 检查用的氟-18：它的半衰期不到两小时，只能就近现做。质子治疗用加速的质子精确打击肿瘤。粒子快到接近光速后会变“重”、绕圈变慢，节拍对不上，于是有了同步加速器；大型强子对撞机也继承了“绕圈反复推”的思路。", "Many large hospitals have a small cyclotron making fluorine-18 for PET scans; it decays in under two hours, so it must be made nearby. Proton therapy aims accelerated protons precisely at tumours. Near light speed a particle grows “heavier” and its laps slow down, falling off the beat — hence the synchrotron. The Large Hadron Collider still follows the idea: go round and round, kicking each time."),
+        ),
+    ))
 
     override val lesson: Lesson by lazy {
         Lesson(

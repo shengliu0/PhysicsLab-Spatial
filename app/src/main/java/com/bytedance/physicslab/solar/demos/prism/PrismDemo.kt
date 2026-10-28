@@ -35,6 +35,7 @@ import com.bytedance.physicslab.solar.core.prism.Glasses
 import com.bytedance.physicslab.solar.core.prism.PrismOptics
 import com.bytedance.physicslab.solar.core.prism.Ray2
 import com.bytedance.physicslab.solar.core.prism.Spectrum
+import com.bytedance.physicslab.solar.lab.About
 import com.bytedance.physicslab.solar.lab.Bi
 import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
@@ -855,6 +856,26 @@ object PrismDemo : SpecDemo() {
     internal fun bend2Deg() = deg(abs(dev2))
     private var glassAtStep = 0
     private var selAtStep = 0
+
+    // ---- background card (📖): context for someone who has never asked where colours come from
+    override val about = About(listOf(
+        About.Page(
+            Bi("这个实验在做什么？", "What is this experiment?"),
+            Bi("一束 3 毫米宽的白光从狭缝射出，穿过玻璃三棱镜，在光屏上展开成从红到紫的光谱。旁边的曲线是这种玻璃的折射率随波长的变化。捏棱镜可换玻璃（冕牌、火石、重火石）；面板「转动棱镜」改变入射角，偏向角会先变小、再变大；打开「判决性实验」，只让一种颜色穿过屏上的小缝，射进第二个棱镜。", "A 3 mm beam of white light leaves a slit, passes a glass prism and spreads into a red-to-violet spectrum on the screen. The chart beside it shows how this glass's refractive index changes with wavelength. Pinch the prism to change glass (crown, flint, dense flint); “Turn prism” changes the entry angle — the deviation shrinks, then grows again; “Experimentum crucis” lets one colour through a slot in the screen into a second prism."),
+        ),
+        About.Page(
+            Bi("颜色从哪里来？", "Where do colours come from?"),
+            Bi("牛顿以前，人们大多认为白光是最纯的光，颜色是棱镜给光“染”上去的。1666 年前后，二十出头的牛顿在暗屋里放进一束阳光，让它穿过棱镜。他又做了“判决性实验”：只取出一种颜色送进第二个棱镜，它只会再拐弯，不会再分色。1672 年他发表结论：白光是各种颜色混合成的，玻璃只是把它们分开。", "Before Newton, most people thought white light was the purest light and that a prism somehow stained it with colour. Around 1666 the twenty-something Newton let a beam of sunlight into a dark room and through a prism. Then came his “crucial experiment”: he sent a single colour into a second prism, and it was bent again but not split. In 1672 he published his conclusion: white light is a mixture of colours, and glass only sorts them."),
+        ),
+        About.Page(
+            Bi("不同颜色，拐弯不同", "Each colour bends differently"),
+            Bi("光进入玻璃会变慢、拐弯，而各种颜色变慢的程度不同：紫光最多，拐得最厉害；红光最少。这就像一排人并肩从跑道冲进沙地，有人陷得深、有人陷得浅，队形就散开了。玻璃的折射率随颜色变化越大，光谱就拉得越长：重火石里展开 10.8°，冕牌只有 1.6°。", "Light slows down and bends as it enters glass, and each colour slows by a different amount: violet most, so it bends most; red least. Picture a row of runners crossing from a track onto sand, some sinking deeper than others — the row spreads out. The more the glass's index changes with colour, the longer the spectrum: 10.8° in dense flint, only 1.6° in crown."),
+        ),
+        About.Page(
+            Bi("今天在哪里？", "Where is it today?"),
+            Bi("彩虹就是阳光在无数小水滴里折射、分色。天文学家用光谱仪把星光拆开，从光谱里的暗线读出恒星由什么元素组成、是在远去还是靠近。色散也有麻烦：普通透镜让不同颜色焦点不同，画面边缘出彩边；把冕牌和火石两片玻璃粘成一组，就能把它抵消——今天的相机和显微镜镜头里都有这种组合。", "A rainbow is sunlight bent and sorted by countless water drops. Astronomers spread starlight into a spectrum and read its dark lines to learn what a star is made of and whether it is moving away or toward us. Dispersion is also a nuisance: a simple lens focuses each colour at a different spot, leaving coloured fringes. Cementing a crown and a flint lens together cancels it — camera and microscope lenses use such pairs today."),
+        ),
+    ))
 
     override val lesson: Lesson by lazy {
         Lesson(

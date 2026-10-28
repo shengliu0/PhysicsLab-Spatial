@@ -35,6 +35,7 @@ import com.bytedance.physicslab.solar.core.faraday.Coil
 import com.bytedance.physicslab.solar.core.faraday.Galvanometer
 import com.bytedance.physicslab.solar.core.faraday.Induction
 import com.bytedance.physicslab.solar.demos.cyclotron.MeshKit
+import com.bytedance.physicslab.solar.lab.About
 import com.bytedance.physicslab.solar.lab.Bi
 import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
@@ -527,6 +528,26 @@ object FaradayDemo : SpecDemo() {
     // KEY INSIGHT: a current flows only while the flux through the coil CHANGES. The magnet resting deep
     // inside the coil (largest flux) gives ZERO; pulling it out reverses the current (Lenz); faster or more
     // turns, bigger current (auto programme, 200 turns: 0.33 mA at 16 cm/s, 0.65 mA at 32 cm/s).
+    // ---- background card (📖): context for a viewer who has never met this topic
+    override val about = About(listOf(
+        About.Page(
+            Bi("这个实验在做什么？", "What is this experiment?"),
+            Bi("一根条形磁铁对着一个线圈，线圈接着一台电流计。在面板选「插入·停·拔出」「匀速穿过」，或拖「磁铁位置」滑块亲手推拉，看指针怎么摆。线圈靠近磁铁的一端会亮出感应出的 N 极或 S 极，下方两条曲线记录磁通量 Φ 和感应电流。捏磁铁可翻转 N/S，捏线圈可换匝数。", "A bar magnet faces a coil wired to a galvanometer. On the panel choose “In · hold · out” or “Pass through”, or drag the “Magnet” slider yourself, and watch the needle. The coil end facing the magnet lights up as the induced N or S pole, and the traces below record the flux Φ and the induced current. Pinch the magnet to flip N/S, or the coil to change its turns."),
+        ),
+        About.Page(
+            Bi("磁能不能生电？", "Can magnets make electricity?"),
+            Bi("1820 年，奥斯特发现电流能让旁边的磁针偏转：电能生磁。那反过来，磁能不能生电？不少人把磁铁放在线圈旁，盯着电流计，却什么也没看到。1831 年，法拉第发现了其中的秘密：只有在磁场变化的那一刻，电流计才会动一下。这为人类提供了大规模发电的方法。法拉第几乎没受过正规数学训练，靠的是一个又一个实验。", "In 1820 Ørsted found that an electric current deflects a nearby compass: electricity makes magnetism. Could magnetism make electricity? Many set a magnet by a coil, watched a meter, saw nothing. In 1831 Faraday found the secret: the meter moves only at the moment the magnetic field changes. That gave the world a way to generate power on a large scale. Faraday had little formal maths; experiments got him there."),
+        ),
+        About.Page(
+            Bi("只认“变化”", "Only change counts"),
+            Bi("线圈不在乎磁场有多强，只在乎它变得有多快。就像坐电梯：只有起步和刹车时你才觉得身子一沉或一轻，匀速时什么也感觉不到。磁铁停在线圈里，磁通量最大却不变，电流为零。推得越快、匝数越多，电流越大：ε = −NΔΦ/Δt。感应电流还总在阻碍变化（楞次定律），所以推磁铁要费力，这份力气变成了电能。", "The coil does not care how strong the field is, only how fast it changes. Like a lift: you feel heavier or lighter only as it starts and stops, not while it cruises. With the magnet resting inside, the flux is largest but constant — zero current. Push faster or add turns: more current, ε = −NΔΦ/Δt. The induced current always fights the change (Lenz's law), so pushing takes effort — and that effort becomes electrical energy."),
+        ),
+        About.Page(
+            Bi("今天它在哪里？", "Where is it today?"),
+            Bi("发电站里，汽轮机或水轮机带着磁铁在线圈中飞转，世界上绝大部分电都是这样来的。变压器、电磁炉、手机无线充电，都是一个线圈里变化的电流，在另一个线圈或锅底里“感应”出电流。刷公交卡、电吉他拾音器、机场的金属探测门，用的也是同一个道理。", "In a power station a steam or water turbine spins magnets past coils — that is where most of the world's electricity comes from. Transformers, induction hobs and wireless phone chargers all use a changing current in one coil to induce a current in another coil or in the pan. Tapping a transit card, an electric-guitar pickup and an airport metal detector work the same way."),
+        ),
+    ))
+
     override val lesson: Lesson by lazy {
         Lesson(
             listOf(

@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.bytedance.physicslab.solar.core.P3
 import com.bytedance.physicslab.solar.core.pendulum.Pendulum
+import com.bytedance.physicslab.solar.lab.About
 import com.bytedance.physicslab.solar.lab.Bi
 import com.bytedance.physicslab.solar.lab.Challenge
 import com.bytedance.physicslab.solar.lab.Lesson
@@ -329,6 +330,26 @@ object PendulumDemo : SpecDemo() {
     internal fun phaseAB(): Double { val T = periods(); return abs(t / T[0] - t / T[1]) * 360.0 }
     /** Same as the planet chip on the panel. */
     internal fun selectG(k: Int) { gIdx = k; restart() }
+
+    // ---- background card (📖): context for someone who has never met the pendulum
+    override val about = About(listOf(
+        About.Page(
+            Bi("这个实验在做什么？", "What is this experiment?"),
+            Bi("左边三个铜球摆：A 和 B 摆长都是 0.40 米，B 更大更重；C 摆长 0.62 米。后面的轨迹板把每个摆的角度画成曲线，A、B 共用一条跑道，两线重合就说明步调一致。捏铜球可换释放角；面板可切大小角度、换星球的重力。右边 15 个长度渐变的摆，组成「单摆波」。", "Three brass bobs on the left: A and B both hang 0.40 m, B is bigger and heavier; C hangs 0.62 m. The board behind draws each swing as a curve; A and B share one lane, so overlapping lines mean they keep step. Pinch a bob to change its release angle; the panel switches small or large angles and the planet's gravity. On the right, 15 graded pendulums make a “pendulum wave”."),
+        ),
+        About.Page(
+            Bi("教堂里的吊灯", "A lamp in a cathedral"),
+            Bi("据他学生的记载，年轻的伽利略在比萨大教堂里看吊灯摆动，用自己的脉搏计时，发现摆得大、摆得小，来回一次的时间好像一样。1602 年他在信里写下这种“等时性”。那时还没有准确的钟，所以这很要紧：1656 年惠更斯据此造出摆钟，每天的误差从好几分钟降到几秒。", "According to a student's account, young Galileo watched a lamp swinging in Pisa Cathedral, timed it against his pulse, and found that a wide swing seemed to take as long as a narrow one. He described this “isochronism” in a 1602 letter. With no accurate clocks around, it mattered: in 1656 Huygens built a pendulum clock, cutting the daily error from minutes to seconds."),
+        ),
+        About.Page(
+            Bi("只看摆长和重力", "Only length and gravity"),
+            Bi("周期 T = 2π√(L/g)：只和摆长 L、重力 g 有关，和质量无关。像荡秋千：大人小孩坐同一架秋千，节奏一样，想换节奏得换绳子长短。摆长变 4 倍，周期变 2 倍；月球重力只有地球的 1/6，摆会慢约 2.5 倍。但“和摆幅无关”只在小角度成立：从 45° 放手，周期长约 4%。", "The period T = 2π√(L/g) depends only on the length L and gravity g — not on mass. Think of a playground swing: a child and an adult on it keep the same rhythm; to change it you change the rope. Four times the length, twice the period; on the Moon, with 1/6 of Earth's gravity, it swings about 2.5× slower. But “any amplitude” holds only for small swings: from 45° the period is about 4% longer."),
+        ),
+        About.Page(
+            Bi("今天在哪里？", "Where is it today?"),
+            Bi("摆钟统治计时近三百年，直到石英钟出现。1851 年傅科在巴黎挂起一根长摆，让人亲眼看到地球在自转。地质学家曾用精密的摆测量各地 g 的微小差别来找矿。手表里的摆轮、手机里的石英，还是同一个思路：数一个节奏稳定的振动。右边的单摆波每 60 秒重新排齐，也是因为每个周期都被摆长定死了。", "Pendulum clocks ruled timekeeping for nearly three centuries, until quartz. In 1851 Foucault hung a long pendulum in Paris that let people see the Earth turning. Geologists once used precise pendulums to map tiny changes in g and hunt for ore. A watch's balance wheel and a phone's quartz crystal use the same idea: count a steady vibration. The wave on the right realigns every 60 s because each length fixes its period exactly."),
+        ),
+    ))
 
     override val lesson: Lesson by lazy {
         Lesson(
